@@ -36,7 +36,7 @@ Issue for its creation at https://github.com/unfoldingWord-dev/door43.org/issues
 Setting up as deployed in virtual environment
 =============================================
 
-In IntelliJ terminal, first switch to virtual environment (replace `<path_to_venv>` with path to your virtualenv).
+In IntelliJ terminal (or other terminal window), first switch to virtual environment (replace `<path_to_venv>` with path to your virtualenv folder).
 
     **source ~/<path_to_venv>/bin/activate**
 
