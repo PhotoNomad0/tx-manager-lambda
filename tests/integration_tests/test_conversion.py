@@ -5,19 +5,60 @@ import os
 from unittest import TestCase
 
 import requests
+from client.client_webhook import ClientWebhook
+
 from bs4 import BeautifulSoup
 
+COMMIT_LENGTH = 40
 
 class TestConversions(TestCase):
 
     def test_usfm_bundle(self):
+        
         baseUrl = "https://git.door43.org"
         user = "deva"
         repo = "kan-x-aruvu_act_text_udb"
 
         commitID, commitPath, commitSha = self.fetchCommitDataForRepo(baseUrl, repo, user)
+        commitLen = len(commitID)
+        if commitLen == COMMIT_LENGTH:
+            webhookData = {
+                "after": commitID,
+                "commits": [
+                    {
+                        "id": "b9278437b27024e07d02490400138d4fd7d1677c",
+                        "message": "Fri Dec 16 2016 11:09:07 GMT+0530 (India Standard Time)\n",
+                        "url": baseUrl + commitPath,
+                    }],
+                "compare_url": "",
+                "repository": {
+                    "name": repo,
+                    "owner": {
+                        "id": 1234567890,
+                        "username": user,
+                        "full_name": user,
+                        "email": "you@example.com"
+                    },
+                },
+                "pusher": {
+                    "id": 123456789,
+                    "username": "test",
+                    "full_name": "",
+                    "email": "you@example.com"
+                },
+            }
+            env_vars = {
+                'api_url': 'https://test-api.door43.org',
+                'pre_convert_bucket': 'test-tx-webhook-client',
+                'cdn_bucket': 'test-cdn.door43.org',
+                'gogs_url': 'https://git.door43.org',
+                'gogs_user_token': 'token1',
+                'commit_data': webhookData
+            }
+            retVal = ClientWebhook(**env_vars).process_webhook()
+            pass
 
-        self.assertIsNotNone(commitID)
+        self.assertEqual(commitLen, COMMIT_LENGTH)
         self.assertIsNotNone(commitSha)
         self.assertIsNotNone(commitPath)
 
