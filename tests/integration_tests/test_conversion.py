@@ -11,6 +11,8 @@ import shutil
 
 import time
 
+from general_tools.file_utils import unzip
+
 from aws_tools.s3_handler import S3Handler
 
 from client.client_webhook import ClientWebhook
@@ -28,14 +30,10 @@ class TestConversions(TestCase):
             shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def doWeWantToRunTest(self):
-        branch = os.environ.get('TRAVIS_BRANCH',"")
-        if branch == "": # if Travis variable is not set, then default to master for local testing
-            branch = "master"
-            print("Doing Local Testing")
-
-        doTest = (branch == "master")
+        test = os.environ.get('TEST_DEPLOYED',"")
+        doTest = (test == "test_deployed")
         if not doTest:
-            print("Skip testing since not running in master branch but branch: " + branch)
+            print("Skip testing since TEST_DEPLOYED is not set")
         else:
             gogsUserToken = os.environ.get('GOGS_USER_TOKEN',"")
             self.assertTrue(len(gogsUserToken) > 0, "GOGS_USER_TOKEN is missing in environment")
@@ -46,9 +44,14 @@ class TestConversions(TestCase):
             return # skip test if not running master branch
 
         # given
+        self.api_url = 'https://dev-api.door43.org'
+        self.pre_convert_bucket = 'dev-tx-webhook-client'
+        self.gogs_url = 'https://git.door43.org'
+        self.cdn_bucket = 'dev-cdn.door43.org'
         baseUrl = "https://git.door43.org"
         user = "deva"
         repo = "kan-x-aruvu_act_text_udb"
+        expectedOutputName = "45-ACT"
 
         # when
         build_log_json, commitID, commitPath, commitSha, success = self.doConversionForRepo(baseUrl, user, repo)
@@ -57,18 +60,83 @@ class TestConversions(TestCase):
         self.assertTrue(len(build_log_json) > 0)
         self.assertTrue(len(build_log_json['errors']) == 0, "Found errors: " + str(build_log_json['errors']))
         self.assertTrue(success)
+
+        self.temp_dir = tempfile.mkdtemp(prefix='testing_')
+        self.downloadAndCheckZipFile(self.s3_handler, expectedOutputName + ".usfm", self.getPreconvertS3Key(commitSha),
+                                     "preconvert")
+
+        # this gets deleted after conversion:
+        # self.downloadAndCheckZipFile(self.cdn_handler, expectedOutputName + ".html", self.getTxOutputS3Key(commitID), "output")
+
+        self.checkDestinationFiles(self.cdn_handler, expectedOutputName + ".html", self.getDestinationS3Key(commitSha, repo, user))
+
         self.assertEqual(len(commitID), COMMIT_LENGTH)
         self.assertIsNotNone(commitSha)
         self.assertIsNotNone(commitPath)
 
     ## handlers
 
+    def downloadAndCheckZipFile(self, handler, expectedOutputFile, key, type):
+        zipPath = os.path.join(self.temp_dir, type + ".zip")
+        handler.download_file(key, zipPath)
+        temp_sub_dir = tempfile.mkdtemp(dir=self.temp_dir, prefix=type + "_")
+        unzip(zipPath, temp_sub_dir)
+        self.assertTrue(os.path.exists(os.path.join(temp_sub_dir, expectedOutputFile)))
+        self.assertTrue(os.path.exists(os.path.join(temp_sub_dir, "manifest.json"))
+                        or os.path.exists(os.path.join(temp_sub_dir, "manifest.yaml")))
+
+    def checkDestinationFiles(self, handler, expectedOutputFile, key):
+        output = handler.get_file_contents(os.path.join(key, expectedOutputFile) )
+        self.assertTrue(len(output) > 0)
+        manifest = handler.get_file_contents(os.path.join(key, "manifest.json") )
+        if manifest == None:
+            manifest = handler.get_file_contents(os.path.join(key, "manifest.yaml") )
+        self.assertTrue(len(manifest) > 0)
+
     def doConversionForRepo(self, baseUrl, user, repo):
+        build_log_json = None
+        success = False
+        self.cdn_handler = S3Handler(self.cdn_bucket)
         commitID, commitPath, commitSha = self.fetchCommitDataForRepo(baseUrl, repo, user)  # TODO: change this to use gogs API when finished
         commitLen = len(commitID)
         if commitLen == COMMIT_LENGTH:
+            self.deletePreconvertZipFile(commitSha)
+            self.deleteTxOutputZipFile(commitID)
+            self.emptyDestinationFolder(commitSha, repo, user)
             build_log_json, success = self.doConversionJob(baseUrl, commitID, commitPath, commitSha, repo, user)
+
         return build_log_json, commitID, commitPath, commitSha, success
+
+    def emptyDestinationFolder(self, commitSha, repo, user):
+        destination_key = self.getDestinationS3Key(commitSha, repo, user)
+        for obj in self.cdn_handler.get_objects(prefix=destination_key):
+            print("deleting destination file: " + obj.key)
+            self.cdn_handler.delete_file(obj.key)
+
+    def deletePreconvertZipFile(self, commitSha):
+        self.s3_handler = S3Handler(self.pre_convert_bucket)
+        preconvert_key = self.getPreconvertS3Key(commitSha)
+        if self.s3_handler.key_exists(preconvert_key):
+            print("deleting preconvert file: " + preconvert_key)
+            self.s3_handler.delete_file(preconvert_key, catch_exception=True)
+
+    def deleteTxOutputZipFile(self, commitID):
+        txOutput_key = self.getTxOutputS3Key(commitID)
+        if self.cdn_handler.key_exists(txOutput_key):
+            print("deleting tx output file: " + txOutput_key)
+            self.cdn_handler.delete_file(txOutput_key, catch_exception=True)
+
+    def getTxOutputS3Key(self, commitID):
+        destination_key = 'tx/job/{0}.zip'.format(commitID)
+        return destination_key
+
+    def getDestinationS3Key(self, commitSha, repo, user):
+        destination_key = 'u/{0}/{1}/{2}'.format(user, repo, commitSha)
+        return destination_key
+
+    def getPreconvertS3Key(self, commitSha):
+        preconvert_key = "preconvert/{0}.zip".format(commitSha)
+        return preconvert_key
 
     def doConversionJob(self, baseUrl, commitID, commitPath, commitSha, repo, user):
         gogsUserToken = os.environ.get('GOGS_USER_TOKEN',"")
@@ -101,28 +169,30 @@ class TestConversions(TestCase):
             },
         }
         env_vars = {
-            'api_url': 'https://dev-api.door43.org',
-            'pre_convert_bucket': 'dev-tx-webhook-client',
-            'cdn_bucket': 'dev-cdn.door43.org',
-            'gogs_url': 'https://git.door43.org',
+            'api_url': self.api_url,
+            'pre_convert_bucket': self.pre_convert_bucket,
+            'cdn_bucket': self.cdn_bucket,
+            'gogs_url': self.gogs_url,
             'gogs_user_token': gogsUserToken,
             'commit_data': webhookData
         }
         try:
-            success = False
-            cdn_handler = S3Handler(env_vars['cdn_bucket'])
             ClientWebhook(**env_vars).process_webhook()
         except Exception as e:
             message = "Exception: " + str(e)
             print(message)
             return None, False
 
-        build_log_json, success = self.pollUntilJobFinished(cdn_handler, commitSha, repo, success, user)
+        build_log_json, success = self.pollUntilJobFinished(commitSha, repo, user)
         return build_log_json, success
 
-    def pollUntilJobFinished(self, cdn_handler, commitSha, repo, success, user):
-        for i in range(0, 60):  # poll for up to 300 seconds for job to complete or error
-            build_log_json = self.getJsonFile(cdn_handler, commitSha, 'build_log.json', repo, user)
+    def pollUntilJobFinished(self, commitSha, repo, user):
+        build_log_json = None
+        success = False
+        pollingTimeout = 5 * 60 # poll for up to 5 minutes for job to complete or error
+        sleepInterval = 5 # how often to check for completion
+        for i in range(0, pollingTimeout / sleepInterval):
+            build_log_json = self.getJsonFile(commitSha, 'build_log.json', repo, user)
             self.assertTrue(len(build_log_json) > 0)
             if len(build_log_json['errors']) > 0:
                 print("Found errors: " + str(build_log_json['errors']))
@@ -131,15 +201,15 @@ class TestConversions(TestCase):
                 success = True
                 break
             print("status at " + str(i) + ":\n" + str(build_log_json))
-            time.sleep(5)
+            time.sleep(sleepInterval)
 
         if build_log_json != None:
             print("Final results:\n" + str(build_log_json))
         return build_log_json, success
 
-    def getJsonFile(self, cdn_handler, commitSha, file, repo, user):
+    def getJsonFile(self, commitSha, file, repo, user):
         key = 'u/{0}/{1}/{2}/{3}'.format(user, repo, commitSha, file)
-        text = cdn_handler.get_json(key)
+        text = self.cdn_handler.get_json(key)
         return text
 
     def fetchCommitDataForRepo(self, baseUrl, repo, user):
@@ -168,7 +238,7 @@ class TestConversions(TestCase):
                             commitPath = commitLink['href']
                             commitSha = self.getContents(commitLink)
                             parts = commitPath.split('/')
-                            commitID = parts[4];
+                            commitID = parts[4]
                             break
 
         return commitID, commitSha, commitPath
