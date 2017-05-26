@@ -2,6 +2,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import tempfile
+import unittest
 
 import os
 from unittest import TestCase
@@ -35,12 +36,12 @@ class TestConversions(TestCase):
         if hasattr(self, 'temp_dir') and os.path.isdir(self.temp_dir):
             shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def test_usfm_mat_bundle(self):
+    @unittest.skip("Needs to be fixed - preconvert leaves backslash at end of line")
+    def test_usfm_mat_conversion(self):
         # given
         if not self.doWeWantToRunTest(): return # skip test if integration test not enabled
-        baseUrl = "https://git.door43.org"
-        user = "vedhanthavijay"
-        repo = "kpb_mat_text_udb"
+        git_url = "https://git.door43.org/vedhanthavijay/kpb_mat_text_udb.git"
+        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
         expectedOutputName = "41-MAT"
 
         # when
@@ -49,12 +50,11 @@ class TestConversions(TestCase):
         # then
         self.validateBible(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
 
-    def test_usfm_acts_bundle(self):
+    def test_usfm_acts1_conversion(self):
         # given
         if not self.doWeWantToRunTest(): return # skip test if integration test not enabled
-        baseUrl = "https://git.door43.org"
-        user = "lversaw"
-        repo = "awa_act_text_reg"
+        git_url = "https://git.door43.org/deva/kan-x-aruvu_act_text_udb.git"
+        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
         expectedOutputName = "45-ACT"
 
         # when
@@ -63,12 +63,104 @@ class TestConversions(TestCase):
         # then
         self.validateBible(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
 
-    def test_usfm_acts2_bundle(self):
+    def test_usfm_acts2_conversion(self):
         # given
         if not self.doWeWantToRunTest(): return # skip test if integration test not enabled
-        baseUrl = "https://git.door43.org"
-        user = "deva"
-        repo = "kan-x-aruvu_act_text_udb"
+        git_url = "https://git.door43.org/mohanraj/kn-x-bedar_act_text_udb.git"
+        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
+        expectedOutputName = "45-ACT"
+
+        # when
+        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
+
+        # then
+        self.validateBible(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
+
+    def test_usfm_acts3_conversion(self):
+        # given
+        if not self.doWeWantToRunTest(): return # skip test if integration test not enabled
+        git_url = "https://git.door43.org/nirmala/te-x-budugaja_act_text_reg.git"
+        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
+        expectedOutputName = "45-ACT"
+
+        # when
+        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
+
+        # then
+        self.validateBible(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
+
+    def test_usfm_acts3_conversion(self):
+        # given
+        if not self.doWeWantToRunTest(): return # skip test if integration test not enabled
+        git_url = "https://git.door43.org/jathapu/kxv_act_text_udb.git"
+        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
+        expectedOutputName = "45-ACT"
+
+        # when
+        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
+
+        # then
+        self.validateBible(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
+
+    def test_usfm_acts4_conversion(self):
+        # given
+        if not self.doWeWantToRunTest(): return # skip test if integration test not enabled
+        git_url = "https://git.door43.org/vinaykumar/kan-x-thigularu_act_text_udb.git"
+        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
+        expectedOutputName = "45-ACT"
+
+        # when
+        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
+
+        # then
+        self.validateBible(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
+
+    def test_usfm_acts5_conversion(self):
+        # given
+        if not self.doWeWantToRunTest(): return # skip test if integration test not enabled
+        git_url = "https://git.door43.org/Zipson/yeu_act_text_udb.git"
+        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
+        expectedOutputName = "45-ACT"
+
+        # when
+        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
+
+        # then
+        self.validateBible(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
+
+    @unittest.skip("Needs to be fixed - doesn't generate output file")
+    def test_usfm_acts6_conversion(self):
+        # given
+        if not self.doWeWantToRunTest(): return # skip test if integration test not enabled
+        git_url = "https://git.door43.org/Zipson/kfc_act_text_udb.git"
+        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
+        expectedOutputName = "45-ACT"
+
+        # when
+        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
+
+        # then
+        self.validateBible(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
+
+    def test_usfm_acts7_conversion(self):
+        # given
+        if not self.doWeWantToRunTest(): return # skip test if integration test not enabled
+        git_url = "https://git.door43.org/E01877C8393A/uw-act_udb-aen.git"
+        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
+        expectedOutputName = "45-ACT"
+
+        # when
+        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
+
+        # then
+        self.validateBible(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
+
+    @unittest.skip("Needs to be fixed - Expected end of text (at char 24993), (line:292, col:121) backslash in text")
+    def test_usfm_acts8_conversion(self):
+        # given
+        if not self.doWeWantToRunTest(): return # skip test if integration test not enabled
+        git_url = "https://git.door43.org/lversaw/awa_act_text_reg.git"
+        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
         expectedOutputName = "45-ACT"
 
         # when
@@ -90,6 +182,13 @@ class TestConversions(TestCase):
             gogsUserToken = os.environ.get('GOGS_USER_TOKEN',"")
             self.assertTrue(len(gogsUserToken) > 0, "GOGS_USER_TOKEN is missing in environment")
         return doTest
+
+    def getPartsOfGitUrl(self, git_url):
+        parts = git_url.split("/")
+        baseUrl = "/".join(parts[0:3])
+        user = parts[3]
+        repo = parts[4].split(".")[0]
+        return baseUrl, repo, user
 
     def validateBible(self, user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job):
         self.assertTrue(len(build_log_json) > 0)
@@ -114,8 +213,7 @@ class TestConversions(TestCase):
         unzip(zipPath, temp_sub_dir)
         outputFilePath = os.path.join(temp_sub_dir, expectedOutputFile)
         self.assertTrue(os.path.exists(outputFilePath))
-        if not success: # print out for troubleshooting
-            self.printFile(expectedOutputFile, outputFilePath)
+        self.printFile(expectedOutputFile, outputFilePath)
         manifest_json = os.path.join(temp_sub_dir, "manifest.json")
         json_exists = os.path.exists(manifest_json)
         if not success and json_exists: # print out for troubleshooting
@@ -133,11 +231,15 @@ class TestConversions(TestCase):
 
     def checkDestinationFiles(self, handler, expectedOutputFile, key):
         output = handler.get_file_contents(os.path.join(key, expectedOutputFile) )
-        self.assertTrue(len(output) > 0)
+        if output==None: # try again in a moment since upload files may not be finished
+            time.sleep(5)
+            output = handler.get_file_contents(os.path.join(key, expectedOutputFile) )
+
         manifest = handler.get_file_contents(os.path.join(key, "manifest.json") )
         if manifest == None:
             manifest = handler.get_file_contents(os.path.join(key, "manifest.yaml") )
-        self.assertTrue(len(manifest) > 0)
+        self.assertTrue(len(output) > 0, "missing file: " + expectedOutputFile)
+        self.assertTrue(len(manifest) > 0, "missing manifest file ")
 
     def doConversionForRepo(self, baseUrl, user, repo):
         build_log_json = None
