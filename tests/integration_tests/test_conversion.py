@@ -5,20 +5,15 @@ import tempfile
 
 import os
 from unittest import TestCase
-
 import requests
 import shutil
-
 import time
 
+from general_tools import file_utils
 from manager.manager import TxManager
-
 from general_tools.file_utils import unzip
-
 from aws_tools.s3_handler import S3Handler
-
 from client.client_webhook import ClientWebhook
-
 from bs4 import BeautifulSoup
 
 COMMIT_LENGTH = 40
@@ -49,10 +44,10 @@ class TestConversions(TestCase):
         expectedOutputName = "41-MAT"
 
         # when
-        build_log_json, commitID, commitPath, commitSha, success = self.doConversionForRepo(baseUrl, user, repo)
+        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
 
         # then
-        self.validateBible(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName)
+        self.validateBible(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
 
     def test_usfm_acts_bundle(self):
         # given
@@ -63,10 +58,10 @@ class TestConversions(TestCase):
         expectedOutputName = "45-ACT"
 
         # when
-        build_log_json, commitID, commitPath, commitSha, success = self.doConversionForRepo(baseUrl, user, repo)
+        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
 
         # then
-        self.validateBible(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName)
+        self.validateBible(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
 
     def test_usfm_acts2_bundle(self):
         # given
@@ -77,10 +72,10 @@ class TestConversions(TestCase):
         expectedOutputName = "45-ACT"
 
         # when
-        build_log_json, commitID, commitPath, commitSha, success = self.doConversionForRepo(baseUrl, user, repo)
+        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
 
         # then
-        self.validateBible(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName)
+        self.validateBible(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
 
     ##
     ## handlers
@@ -96,29 +91,45 @@ class TestConversions(TestCase):
             self.assertTrue(len(gogsUserToken) > 0, "GOGS_USER_TOKEN is missing in environment")
         return doTest
 
-    def validateBible(self, user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName):
+    def validateBible(self, user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job):
         self.assertTrue(len(build_log_json) > 0)
-        self.assertTrue(len(build_log_json['errors']) == 0, "Found errors: " + str(build_log_json['errors']))
-        self.assertTrue(success)
+        self.assertIsNotNone(job)
         self.temp_dir = tempfile.mkdtemp(prefix='testing_')
         self.downloadAndCheckZipFile(self.s3_handler, expectedOutputName + ".usfm", self.getPreconvertS3Key(commitSha),
-                                     "preconvert")
-        # this gets deleted after conversion:
-        # self.downloadAndCheckZipFile(self.cdn_handler, expectedOutputName + ".html", self.getTxOutputS3Key(commitID), "output")
+                                     "preconvert", success)
+
         self.checkDestinationFiles(self.cdn_handler, expectedOutputName + ".html",
                                    self.getDestinationS3Key(commitSha, repo, user))
         self.assertEqual(len(commitID), COMMIT_LENGTH)
         self.assertIsNotNone(commitSha)
         self.assertIsNotNone(commitPath)
+        self.assertTrue(len(job.errors) == 0, "Found job errors: " + str(job.errors))
+        self.assertTrue(len(build_log_json['errors']) == 0, "Found build_log errors: " + str(build_log_json['errors']))
+        self.assertTrue(success)
 
-    def downloadAndCheckZipFile(self, handler, expectedOutputFile, key, type):
+    def downloadAndCheckZipFile(self, handler, expectedOutputFile, key, type, success):
         zipPath = os.path.join(self.temp_dir, type + ".zip")
         handler.download_file(key, zipPath)
         temp_sub_dir = tempfile.mkdtemp(dir=self.temp_dir, prefix=type + "_")
         unzip(zipPath, temp_sub_dir)
-        self.assertTrue(os.path.exists(os.path.join(temp_sub_dir, expectedOutputFile)))
-        self.assertTrue(os.path.exists(os.path.join(temp_sub_dir, "manifest.json"))
-                        or os.path.exists(os.path.join(temp_sub_dir, "manifest.yaml")))
+        outputFilePath = os.path.join(temp_sub_dir, expectedOutputFile)
+        self.assertTrue(os.path.exists(outputFilePath))
+        if not success: # print out for troubleshooting
+            self.printFile(expectedOutputFile, outputFilePath)
+        manifest_json = os.path.join(temp_sub_dir, "manifest.json")
+        json_exists = os.path.exists(manifest_json)
+        if not success and json_exists: # print out for troubleshooting
+            self.printFile("manifest.json", manifest_json)
+        manifest_yaml = os.path.join(temp_sub_dir, "manifest.yaml")
+        yaml_exists = os.path.exists(manifest_yaml)
+        if not success and yaml_exists:  # print out for troubleshooting
+            self.printFile("manifest.yaml", manifest_yaml)
+
+        self.assertTrue(json_exists or yaml_exists)
+
+    def printFile(self, fileName, filePath):
+        text = file_utils.read_file(filePath)
+        print("Output file (" + fileName + "): " + text)
 
     def checkDestinationFiles(self, handler, expectedOutputFile, key):
         output = handler.get_file_contents(os.path.join(key, expectedOutputFile) )
@@ -130,6 +141,7 @@ class TestConversions(TestCase):
 
     def doConversionForRepo(self, baseUrl, user, repo):
         build_log_json = None
+        job = None
         success = False
         self.cdn_handler = S3Handler(self.cdn_bucket)
         commitID, commitPath, commitSha = self.fetchCommitDataForRepo(baseUrl, repo, user)  # TODO: change this to use gogs API when finished
@@ -138,9 +150,9 @@ class TestConversions(TestCase):
             self.deletePreconvertZipFile(commitSha)
             self.deleteTxOutputZipFile(commitID)
             self.emptyDestinationFolder(commitSha, repo, user)
-            build_log_json, success = self.doConversionJob(baseUrl, commitID, commitPath, commitSha, repo, user)
+            build_log_json, success, job = self.doConversionJob(baseUrl, commitID, commitPath, commitSha, repo, user)
 
-        return build_log_json, commitID, commitPath, commitSha, success
+        return build_log_json, commitID, commitPath, commitSha, success, job
 
     def emptyDestinationFolder(self, commitSha, repo, user):
         destination_key = self.getDestinationS3Key(commitSha, repo, user)
@@ -218,14 +230,15 @@ class TestConversions(TestCase):
             print(message)
             return None, False
 
-        success = self.pollUntilJobFinished(build_log_json['job_id'])
+        success, job = self.pollUntilJobFinished(build_log_json['job_id'])
         build_log_json = self.getJsonFile(commitSha, 'build_log.json', repo, user)
         if build_log_json != None:
             print("Final results:\n" + str(build_log_json))
-        return build_log_json, success
+        return build_log_json, success, job
 
     def pollUntilJobFinished(self, job_id):
         success = False
+        job = None
 
         env_vars = {
             'api_url': self.api_url,
@@ -260,7 +273,7 @@ class TestConversions(TestCase):
 
             time.sleep(sleepInterval)
 
-        return success
+        return success, job
 
     def getJsonFile(self, commitSha, file, repo, user):
         key = 'u/{0}/{1}/{2}/{3}'.format(user, repo, commitSha, file)
