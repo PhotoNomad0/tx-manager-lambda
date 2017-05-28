@@ -89,7 +89,7 @@ class TestConversions(TestCase):
         # then
         self.validateBible(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
 
-    def test_usfm_acts3_conversion(self):
+    def test_usfm_acts4_conversion(self):
         # given
         if not self.doWeWantToRunTest(): return # skip test if integration test not enabled
         git_url = "https://git.door43.org/jathapu/kxv_act_text_udb.git"
@@ -102,7 +102,7 @@ class TestConversions(TestCase):
         # then
         self.validateBible(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
 
-    def test_usfm_acts4_conversion(self):
+    def test_usfm_acts5_conversion(self):
         # given
         if not self.doWeWantToRunTest(): return # skip test if integration test not enabled
         git_url = "https://git.door43.org/vinaykumar/kan-x-thigularu_act_text_udb.git"
@@ -115,7 +115,7 @@ class TestConversions(TestCase):
         # then
         self.validateBible(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
 
-    def test_usfm_acts5_conversion(self):
+    def test_usfm_acts6_conversion(self):
         # given
         if not self.doWeWantToRunTest(): return # skip test if integration test not enabled
         git_url = "https://git.door43.org/Zipson/yeu_act_text_udb.git"
@@ -129,7 +129,7 @@ class TestConversions(TestCase):
         self.validateBible(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
 
     @unittest.skip("Needs to be fixed - doesn't generate output file")
-    def test_usfm_acts6_conversion(self):
+    def test_usfm_acts7_conversion(self):
         # given
         if not self.doWeWantToRunTest(): return # skip test if integration test not enabled
         git_url = "https://git.door43.org/Zipson/kfc_act_text_udb.git"
@@ -142,7 +142,7 @@ class TestConversions(TestCase):
         # then
         self.validateBible(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
 
-    def test_usfm_acts7_conversion(self):
+    def test_usfm_acts8_conversion(self):
         # given
         if not self.doWeWantToRunTest(): return # skip test if integration test not enabled
         git_url = "https://git.door43.org/E01877C8393A/uw-act_udb-aen.git"
@@ -156,7 +156,7 @@ class TestConversions(TestCase):
         self.validateBible(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
 
     @unittest.skip("Needs to be fixed - Expected end of text (at char 24993), (line:292, col:121) backslash in text")
-    def test_usfm_acts8_conversion(self):
+    def test_usfm_acts9_conversion(self):
         # given
         if not self.doWeWantToRunTest(): return # skip test if integration test not enabled
         git_url = "https://git.door43.org/lversaw/awa_act_text_reg.git"
