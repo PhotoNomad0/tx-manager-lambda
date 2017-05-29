@@ -48,7 +48,34 @@ class TestConversions(TestCase):
         build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
 
         # then
-        self.validateBible(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
+        self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
+
+    @unittest.skip("Needs to be fixed - Expected end of text (at char 24993), (line:292, col:121) backslash in text")
+    def test_usfm_acts0_conversion(self):
+        # given
+        if not self.doWeWantToRunTest(): return # skip test if integration test not enabled
+        git_url = "https://git.door43.org/lversaw/awa_act_text_reg.git"
+        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
+        expectedOutputName = "45-ACT"
+
+        # when
+        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
+
+        # then
+        self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
+
+    def test_obs_conversion(self):
+        # given
+        if not self.doWeWantToRunTest(): return # skip test if integration test not enabled
+        git_url = "https://git.door43.org/tx-manager-test-data/en-obs-rc-0.2.git"
+        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
+        expectedChapterCount = 50
+
+        # when
+        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
+
+        # then
+        self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, "", job, chapterCount=expectedChapterCount)
 
     def test_usfm_acts1_conversion(self):
         # given
@@ -61,7 +88,7 @@ class TestConversions(TestCase):
         build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
 
         # then
-        self.validateBible(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
+        self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
 
     def test_usfm_acts2_conversion(self):
         # given
@@ -74,7 +101,7 @@ class TestConversions(TestCase):
         build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
 
         # then
-        self.validateBible(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
+        self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
 
     def test_usfm_acts3_conversion(self):
         # given
@@ -87,7 +114,7 @@ class TestConversions(TestCase):
         build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
 
         # then
-        self.validateBible(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
+        self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
 
     def test_usfm_acts4_conversion(self):
         # given
@@ -100,7 +127,7 @@ class TestConversions(TestCase):
         build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
 
         # then
-        self.validateBible(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
+        self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
 
     def test_usfm_acts5_conversion(self):
         # given
@@ -113,7 +140,7 @@ class TestConversions(TestCase):
         build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
 
         # then
-        self.validateBible(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
+        self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
 
     def test_usfm_acts6_conversion(self):
         # given
@@ -126,9 +153,8 @@ class TestConversions(TestCase):
         build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
 
         # then
-        self.validateBible(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
+        self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
 
-    @unittest.skip("Needs to be fixed - doesn't generate output file")
     def test_usfm_acts7_conversion(self):
         # given
         if not self.doWeWantToRunTest(): return # skip test if integration test not enabled
@@ -140,7 +166,7 @@ class TestConversions(TestCase):
         build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
 
         # then
-        self.validateBible(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
+        self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
 
     def test_usfm_acts8_conversion(self):
         # given
@@ -153,21 +179,7 @@ class TestConversions(TestCase):
         build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
 
         # then
-        self.validateBible(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
-
-    @unittest.skip("Needs to be fixed - Expected end of text (at char 24993), (line:292, col:121) backslash in text")
-    def test_usfm_acts9_conversion(self):
-        # given
-        if not self.doWeWantToRunTest(): return # skip test if integration test not enabled
-        git_url = "https://git.door43.org/lversaw/awa_act_text_reg.git"
-        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
-        expectedOutputName = "45-ACT"
-
-        # when
-        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
-
-        # then
-        self.validateBible(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
+        self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
 
     ##
     ## handlers
@@ -184,21 +196,26 @@ class TestConversions(TestCase):
         return doTest
 
     def getPartsOfGitUrl(self, git_url):
+        print("Testing conversion of: " + git_url)
         parts = git_url.split("/")
         baseUrl = "/".join(parts[0:3])
         user = parts[3]
-        repo = parts[4].split(".")[0]
+        repo = parts[4].split(".git")[0]
         return baseUrl, repo, user
 
-    def validateBible(self, user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job):
+    def validateConversion(self, user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job, chapterCount=-1):
         self.assertTrue(len(build_log_json) > 0)
         self.assertIsNotNone(job)
         self.temp_dir = tempfile.mkdtemp(prefix='testing_')
-        self.downloadAndCheckZipFile(self.s3_handler, expectedOutputName + ".usfm", self.getPreconvertS3Key(commitSha),
-                                     "preconvert", success)
 
+        # check pre-convert files
+        self.downloadAndCheckZipFile(self.s3_handler, expectedOutputName + ".usfm", self.getPreconvertS3Key(commitSha),
+                                     "preconvert", success, chapterCount)
+
+        # check deployed files
         self.checkDestinationFiles(self.cdn_handler, expectedOutputName + ".html",
-                                   self.getDestinationS3Key(commitSha, repo, user))
+                                   self.getDestinationS3Key(commitSha, repo, user), chapterCount)
+
         self.assertEqual(len(commitID), COMMIT_LENGTH)
         self.assertIsNotNone(commitSha)
         self.assertIsNotNone(commitPath)
@@ -206,14 +223,24 @@ class TestConversions(TestCase):
         self.assertTrue(len(build_log_json['errors']) == 0, "Found build_log errors: " + str(build_log_json['errors']))
         self.assertTrue(success)
 
-    def downloadAndCheckZipFile(self, handler, expectedOutputFile, key, type, success):
+    def downloadAndCheckZipFile(self, handler, expectedOutputFile, key, type, success, chapterCount=-1):
         zipPath = os.path.join(self.temp_dir, type + ".zip")
         handler.download_file(key, zipPath)
         temp_sub_dir = tempfile.mkdtemp(dir=self.temp_dir, prefix=type + "_")
         unzip(zipPath, temp_sub_dir)
-        outputFilePath = os.path.join(temp_sub_dir, expectedOutputFile)
-        self.assertTrue(os.path.exists(outputFilePath))
-        self.printFile(expectedOutputFile, outputFilePath)
+
+        checkList = []
+        if chapterCount <= 0:
+            checkList.append(expectedOutputFile)
+        else:
+            checkList = ['{0:0>2}.html'.format(i) for i in range(1, chapterCount + 1)]
+
+        for file in checkList:
+            outputFilePath = os.path.join(temp_sub_dir, file)
+            print("testing for: " + outputFilePath)
+            self.assertTrue(os.path.exists(outputFilePath), "missing file: " + file)
+            self.printFile(file, outputFilePath)
+
         manifest_json = os.path.join(temp_sub_dir, "manifest.json")
         json_exists = os.path.exists(manifest_json)
         if not success and json_exists: # print out for troubleshooting
@@ -223,17 +250,27 @@ class TestConversions(TestCase):
         if not success and yaml_exists:  # print out for troubleshooting
             self.printFile("manifest.yaml", manifest_yaml)
 
-        self.assertTrue(json_exists or yaml_exists)
+        self.assertTrue(json_exists or yaml_exists, "missing manifest file")
 
     def printFile(self, fileName, filePath):
         text = file_utils.read_file(filePath)
         print("Output file (" + fileName + "): " + text)
 
-    def checkDestinationFiles(self, handler, expectedOutputFile, key):
-        output = handler.get_file_contents(os.path.join(key, expectedOutputFile) )
-        if output==None: # try again in a moment since upload files may not be finished
-            time.sleep(5)
-            output = handler.get_file_contents(os.path.join(key, expectedOutputFile) )
+    def checkDestinationFiles(self, handler, expectedOutputFile, key, chapterCount=-1):
+        checkList = []
+        if chapterCount <= 0:
+            checkList.append(expectedOutputFile)
+        else:
+            checkList = ['{0:0>2}.html'.format(i) for i in range(1, chapterCount + 1)]
+
+        for file in checkList:
+            path = os.path.join(key, file)
+            print("testing for: " + path)
+            output = handler.get_file_contents(path)
+            if output==None: # try again in a moment since upload files may not be finished
+                time.sleep(5)
+                print("retry fetch of: " + path)
+                output = handler.get_file_contents(path)
 
         manifest = handler.get_file_contents(os.path.join(key, "manifest.json") )
         if manifest == None:
