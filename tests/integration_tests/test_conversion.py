@@ -57,7 +57,7 @@ class TestConversions(TestCase):
     def test_usfm_mat_conversion(self):
         # given
         if not self.isTestingEnabled(): return # skip test if integration test not enabled
-        git_url = "https://git.door43.org/vedhanthavijay/kpb_mat_text_udb.git"
+        git_url = "https://git.door43.org/tx-manager-test-data/kpb_mat_text_udb.git"
         baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
         expectedOutputName = "41-MAT"
 
@@ -71,7 +71,7 @@ class TestConversions(TestCase):
     def test_usfm_acts0_conversion(self):
         # given
         if not self.isTestingEnabled(): return # skip test if integration test not enabled
-        git_url = "https://git.door43.org/lversaw/awa_act_text_reg.git"
+        git_url = "https://git.door43.org/tx-manager-test-data/awa_act_text_reg.git"
         baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
         expectedOutputName = "45-ACT"
 
@@ -94,10 +94,131 @@ class TestConversions(TestCase):
         # then
         self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, "", job, chapterCount=expectedChapterCount, fileExt="md")
 
-    def test_usfm_acts1_conversion(self):
+    def test_obs_conversion_ts_upload(self):
         # given
         if not self.isTestingEnabled(): return # skip test if integration test not enabled
-        git_url = "https://git.door43.org/deva/kan-x-aruvu_act_text_udb.git"
+        git_url = "https://git.door43.org/tx-manager-test-data/hu_obs_text_obs.git"
+        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
+        expectedChapterCount = 49
+
+        # when
+        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
+
+        # then
+        self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, "", job, chapterCount=expectedChapterCount, fileExt="md")
+
+    def test_usfm_en_jud_bundle_conversion(self):
+        # given
+        if not self.isTestingEnabled(): return # skip test if integration test not enabled
+        git_url = "https://git.door43.org/tx-manager-test-data/en-ulb-jud.git"
+        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
+        expectedOutputNames = [ "66-JUD" ]
+
+        # when
+        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
+
+        # then
+        self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputNames, job)
+
+    @unittest.skip("Skipping broken conversion that needs to be fixed - conversion takes too long and times out")
+    def test_usfm_en_bundle_conversion(self):
+        # given
+        if not self.isTestingEnabled(): return # skip test if integration test not enabled
+        git_url = "https://git.door43.org/tx-manager-test-data/en-ulb.git"
+        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
+        expectedOutputNames = [ "01-GEN", "02-EXO", "03-LEV", "05-DEU" ]
+
+        # when
+        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
+
+        # then
+        self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputNames, job)
+
+    @unittest.skip("Skipping broken conversion that needs to be fixed - conversion takes too long and times out")
+    def test_usfm_ru_bundle_conversion(self):
+        # given
+        if not self.isTestingEnabled(): return # skip test if integration test not enabled
+        git_url = "https://git.door43.org/tx-manager-test-data/bible_ru.git"
+        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
+        expectedOutputNames = [
+            "01-GEN",
+            "02-EXO",
+            "03-LEV",
+            "04-NUM",
+            "05-DEU",
+            "06-JOS",
+            "07-JDG",
+            "08-RUT",
+            "09-1SA",
+            "10-2SA",
+            "11-1KI",
+            "12-2KI",
+            "13-1CH",
+            "14-2CH",
+            "15-EZR",
+            "16-NEH",
+            "17-EST",
+            "18-JOB",
+            "19-PSA",
+            "20-PRO",
+            "21-ECC",
+            "22-SNG",
+            "23-ISA",
+            "24-JER",
+            "25-LAM",
+            "26-EZK",
+            "27-DAN",
+            "28-HOS",
+            "29-JOL",
+            "30-AMO",
+            "31-OBA",
+            "32-JON",
+            "33-MIC",
+            "34-NAM",
+            "35-HAB",
+            "36-ZEP",
+            "37-HAG",
+            "38-ZEC",
+            "39-MAL",
+            "41-MAT",
+            "42-MRK",
+            "43-LUK",
+            "44-JHN",
+            "45-ACT",
+            "46-ROM",
+            "47-1CO",
+            "48-2CO",
+            "49-GAL",
+            "50-EPH",
+            "51-PHP",
+            "52-COL",
+            "53-1TH",
+            "54-2TH",
+            "55-1TI",
+            "56-2TI",
+            "57-TIT",
+            "58-PHM",
+            "59-HEB",
+            "60-JAS",
+            "61-1PE",
+            "62-2PE",
+            "63-1JN",
+            "64-2JN",
+            "65-3JN",
+            "66-JUD",
+            "67-REV"
+        ]
+
+        # when
+        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
+
+        # then
+        self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputNames, job)
+
+    def test_ts_acts1_conversion(self):
+        # given
+        if not self.isTestingEnabled(): return # skip test if integration test not enabled
+        git_url = "https://git.door43.org/tx-manager-test-data/kan-x-aruvu_act_text_udb.git"
         baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
         expectedOutputName = "45-ACT"
 
@@ -107,7 +228,7 @@ class TestConversions(TestCase):
         # then
         self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
 
-    def test_usfm_acts2_conversion(self):
+    def test_ts_acts2_conversion(self):
         # given
         if not self.isTestingEnabled(): return # skip test if integration test not enabled
         git_url = "https://git.door43.org/mohanraj/kn-x-bedar_act_text_udb.git"
@@ -121,7 +242,7 @@ class TestConversions(TestCase):
         self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
 
     @unittest.skip("Skip test for time reasons - leave for standalone testing")
-    def test_usfm_acts3_conversion(self):
+    def test_ts_acts3_conversion(self):
         # given
         if not self.isTestingEnabled(): return # skip test if integration test not enabled
         git_url = "https://git.door43.org/nirmala/te-x-budugaja_act_text_reg.git"
@@ -135,7 +256,7 @@ class TestConversions(TestCase):
         self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
 
     @unittest.skip("Skip test for time reasons - leave for standalone testing")
-    def test_usfm_acts4_conversion(self):
+    def test_ts_acts4_conversion(self):
         # given
         if not self.isTestingEnabled(): return # skip test if integration test not enabled
         git_url = "https://git.door43.org/jathapu/kxv_act_text_udb.git"
@@ -149,7 +270,7 @@ class TestConversions(TestCase):
         self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
 
     @unittest.skip("Skip test for time reasons - leave for standalone testing")
-    def test_usfm_acts5_conversion(self):
+    def test_ts_acts5_conversion(self):
         # given
         if not self.isTestingEnabled(): return # skip test if integration test not enabled
         git_url = "https://git.door43.org/vinaykumar/kan-x-thigularu_act_text_udb.git"
@@ -163,7 +284,7 @@ class TestConversions(TestCase):
         self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
 
     @unittest.skip("Skip test for time reasons - leave for standalone testing")
-    def test_usfm_acts6_conversion(self):
+    def test_ts_acts6_conversion(self):
         # given
         if not self.isTestingEnabled(): return # skip test if integration test not enabled
         git_url = "https://git.door43.org/Zipson/yeu_act_text_udb.git"
@@ -177,7 +298,7 @@ class TestConversions(TestCase):
         self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
 
     @unittest.skip("Skip test for time reasons - leave for standalone testing")
-    def test_usfm_acts7_conversion(self):
+    def test_ts_acts7_conversion(self):
         # given
         if not self.isTestingEnabled(): return # skip test if integration test not enabled
         git_url = "https://git.door43.org/Zipson/kfc_act_text_udb.git"
@@ -191,7 +312,7 @@ class TestConversions(TestCase):
         self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
 
     @unittest.skip("Skip test for time reasons - leave for standalone testing")
-    def test_usfm_acts8_conversion(self):
+    def test_ts_acts8_conversion(self):
         # given
         if not self.isTestingEnabled(): return # skip test if integration test not enabled
         git_url = "https://git.door43.org/E01877C8393A/uw-act_udb-aen.git"
@@ -226,18 +347,21 @@ class TestConversions(TestCase):
         repo = parts[4].split(".git")[0]
         return baseUrl, repo, user
 
-    def validateConversion(self, user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job, chapterCount=-1, fileExt=""):
+    def validateConversion(self, user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputNames, job, chapterCount=-1, fileExt=""):
         self.assertTrue(len(build_log_json) > 0)
         self.assertIsNotNone(job)
         self.temp_dir = tempfile.mkdtemp(prefix='testing_')
 
+        if not (type(expectedOutputNames) is list):
+            expectedOutputNames = [ expectedOutputNames ] # put string in list
+
         # check pre-convert files
-        self.downloadAndCheckZipFile(self.s3_handler, expectedOutputName + ".usfm", self.getPreconvertS3Key(commitSha),
-                                     "preconvert", success, chapterCount, fileExt)
+        self.downloadAndCheckZipFile(self.s3_handler, expectedOutputNames, "usfm", self.getPreconvertS3Key(commitSha),
+                                         "preconvert", success, chapterCount, fileExt)
 
         # check deployed files
-        self.checkDestinationFiles(self.cdn_handler, expectedOutputName + ".html",
-                                   self.getDestinationS3Key(commitSha, repo, user), chapterCount)
+        self.checkDestinationFiles(self.cdn_handler, expectedOutputNames, "html",
+                                        self.getDestinationS3Key(commitSha, repo, user), chapterCount)
 
         self.assertEqual(len(commitID), COMMIT_LENGTH)
         self.assertIsNotNone(commitSha)
@@ -246,7 +370,7 @@ class TestConversions(TestCase):
         self.assertTrue(len(build_log_json['errors']) == 0, "Found build_log errors: " + str(build_log_json['errors']))
         self.assertTrue(success)
 
-    def downloadAndCheckZipFile(self, handler, expectedOutputFile, key, type, success, chapterCount=-1, fileExt=""):
+    def downloadAndCheckZipFile(self, handler, expectedOutputFiles, extension, key, type, success, chapterCount=-1, fileExt=""):
         zipPath = os.path.join(self.temp_dir, type + ".zip")
         handler.download_file(key, zipPath)
         temp_sub_dir = tempfile.mkdtemp(dir=self.temp_dir, prefix=type + "_")
@@ -254,7 +378,8 @@ class TestConversions(TestCase):
 
         checkList = []
         if chapterCount <= 0:
-            checkList.append(expectedOutputFile)
+            for file in expectedOutputFiles:
+                checkList.append(file + "." + extension)
         else:
             checkList = ['{0:0>2}.{1}'.format(i, fileExt) for i in range(1, chapterCount + 1)]
 
@@ -282,10 +407,11 @@ class TestConversions(TestCase):
         text = file_utils.read_file(filePath)
         print("Output file (" + fileName + "): " + text)
 
-    def checkDestinationFiles(self, handler, expectedOutputFile, key, chapterCount=-1):
+    def checkDestinationFiles(self, handler, expectedOutputFiles, extension, key, chapterCount=-1):
         checkList = []
         if chapterCount <= 0:
-            checkList.append(expectedOutputFile)
+            for file in expectedOutputFiles:
+                checkList.append(file + "." + extension)
         else:
             checkList = ['{0:0>2}.html'.format(i) for i in range(1, chapterCount + 1)]
             # checkList.append("index.html")
@@ -394,9 +520,14 @@ class TestConversions(TestCase):
         except Exception as e:
             message = "Exception: " + str(e)
             print(message)
-            return None, False
+            return None, False, None
 
-        success, job = self.pollUntilJobFinished(build_log_json['job_id'])
+        job_id = build_log_json['job_id']
+        if job_id == None:
+            print("Job ID missing in build_log")
+            return None, False, None
+
+        success, job = self.pollUntilJobFinished(job_id)
         build_log_json = self.getJsonFile(commitSha, 'build_log.json', repo, user)
         if build_log_json != None:
             print("Final results:\n" + str(build_log_json))
