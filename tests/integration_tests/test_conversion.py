@@ -56,7 +56,7 @@ class TestConversions(TestCase):
             shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     @unittest.skip("Skipping broken conversion that needs to be fixed - preconvert leaves backslash at end of line")
-    def test_usfm_mat_conversion(self):
+    def test_ts_mat_conversion(self):
         # given
         if not self.isTestingEnabled(): return # skip test if integration test not enabled
         git_url = "https://git.door43.org/tx-manager-test-data/kpb_mat_text_udb.git"
@@ -70,12 +70,25 @@ class TestConversions(TestCase):
         self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
 
     @unittest.skip("Skipping broken conversion that needs to be fixed - Expected end of text (at char 24993), (line:292, col:121) backslash in text")
-    def test_usfm_acts0_conversion(self):
+    def test_ts_acts0_conversion(self):
         # given
         if not self.isTestingEnabled(): return # skip test if integration test not enabled
         git_url = "https://git.door43.org/tx-manager-test-data/awa_act_text_reg.git"
         baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
         expectedOutputName = "45-ACT"
+
+        # when
+        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
+
+        # then
+        self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
+
+    def test_ts_psa_conversion(self):
+        # given
+        if not self.isTestingEnabled(): return # skip test if integration test not enabled
+        git_url = "https://git.door43.org/tx-manager-test-data/ceb_psa_text_ulb_L3.git"
+        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
+        expectedOutputName = "19-PSA"
 
         # when
         build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
@@ -359,11 +372,11 @@ class TestConversions(TestCase):
 
         # check pre-convert files
         self.downloadAndCheckZipFile(self.s3_handler, expectedOutputNames, "usfm", self.getPreconvertS3Key(commitSha),
-                                         "preconvert", success, chapterCount, fileExt)
+                                     "preconvert", success, chapterCount, fileExt)
 
         # check deployed files
         self.checkDestinationFiles(self.cdn_handler, expectedOutputNames, "html",
-                                        self.getDestinationS3Key(commitSha, repo, user), chapterCount)
+                                   self.getDestinationS3Key(commitSha, repo, user), chapterCount)
 
         self.assertEqual(len(commitID), COMMIT_LENGTH)
         self.assertIsNotNone(commitSha)
@@ -529,6 +542,7 @@ class TestConversions(TestCase):
             print(webhookData)
             response = requests.post(tx_client_webhook_url, json=webhookData, headers=headers)
             print('webhook finished with code:' + str(response.status_code))
+            print('webhook finished with text:' + str(response.text))
             build_log_json = json.loads(response.text)
             if response.status_code != 200:
                 return build_log_json, False, (build_log_json['job_id'])
