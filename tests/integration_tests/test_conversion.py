@@ -133,7 +133,6 @@ class TestConversions(TestCase):
         # then
         self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputNames, job)
 
-    @unittest.skip("Skipping broken conversion that needs to be fixed - conversion takes too long and times out")
     def test_usfm_en_bundle_conversion(self):
         # given
         if not self.isTestingEnabled(): return # skip test if integration test not enabled
@@ -373,7 +372,7 @@ class TestConversions(TestCase):
                                      "preconvert", success, chapterCount, fileExt)
 
         # check deployed files
-        self.checkDestinationFiles(self.cdn_handler, expectedOutputNames, "html",
+        saved_build_log = self.checkDestinationFiles(self.cdn_handler, expectedOutputNames, "html",
                                    self.getDestinationS3Key(commitSha, repo, user), chapterCount)
 
         self.assertEqual(len(commitID), COMMIT_LENGTH)
@@ -450,10 +449,13 @@ class TestConversions(TestCase):
 
             self.assertIsNotNone(output, "missing file: " + path)
 
+        build_log = handler.get_file_contents(os.path.join(key, "build_log.json") )
         manifest = handler.get_file_contents(os.path.join(key, "manifest.json") )
         if manifest == None:
             manifest = handler.get_file_contents(os.path.join(key, "manifest.yaml") )
         self.assertTrue(len(manifest) > 0, "missing manifest file ")
+        self.assertTrue(len(build_log) > 0, "missing build_log file ")
+        return build_log
 
     def doConversionForRepo(self, baseUrl, user, repo):
         build_log_json = None
@@ -560,12 +562,23 @@ class TestConversions(TestCase):
                 print(message)
                 return None, False, None
 
-        job_id = build_log_json['job_id']
-        if job_id == None:
-            print("Job ID missing in build_log")
-            return None, False, None
+        if not "build_logs" in build_log_json: # if not multiple parts
+            job_id = build_log_json['job_id']
+            if job_id == None:
+                print("Job ID missing in build_log")
+                return None, False, None
+            success, job = self.pollUntilJobFinished(job_id)
 
-        success, job = self.pollUntilJobFinished(job_id)
+        else: # multiple parts
+            for build_log in build_log_json['build_logs']: # check for completion of each part
+                job_id = build_log['job_id']
+                if job_id == None:
+                    print("Job ID missing in build_logs")
+                    return None, False, None
+                success, job = self.pollUntilJobFinished(job_id)
+                if not success:
+                    break
+
         build_log_json = self.getJsonFile(commitSha, 'build_log.json', repo, user)
         if build_log_json != None:
             print("Final results:\n" + str(build_log_json))
