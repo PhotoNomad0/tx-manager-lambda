@@ -375,6 +375,17 @@ class TestConversions(TestCase):
         saved_build_log = self.checkDestinationFiles(self.cdn_handler, expectedOutputNames, "html",
                                    self.getDestinationS3Key(commitSha, repo, user), chapterCount)
 
+        # check required fields
+        self.assertTrue('commit_id' in saved_build_log)
+        self.assertTrue('repo_owner' in saved_build_log)
+        self.assertTrue('repo_name' in saved_build_log)
+        self.assertTrue('created_at' in saved_build_log)
+        self.assertTrue('source' in saved_build_log)
+        self.assertTrue('errors' in saved_build_log)
+        self.assertTrue('warnings' in saved_build_log)
+        self.assertTrue('message' in saved_build_log)
+        self.assertTrue('status' in saved_build_log)
+
         self.assertEqual(len(commitID), COMMIT_LENGTH)
         self.assertIsNotNone(commitSha)
         self.assertIsNotNone(commitPath)
