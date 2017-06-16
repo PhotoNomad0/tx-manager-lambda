@@ -146,6 +146,28 @@ class TestConversions(TestCase):
         # then
         self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputNames, job)
 
+    # @unittest.skip("Skipping broken conversion that needs to be fixed - conversion takes too long and times out")
+    def test_usfm_ru_short_bundle_conversion(self):
+        # given
+        if not self.isTestingEnabled(): return # skip test if integration test not enabled
+        git_url = "https://git.door43.org/tx-manager-test-data/bible_ru_short.git"  # shorter book list, but bigger books
+        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
+        expectedOutputNames = [
+            "18-JOB",
+            "19-PSA",
+            "20-PRO",
+            "21-ECC",
+            "22-SNG",
+            "23-ISA",
+            "24-JER",
+        ]
+
+        # when
+        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
+
+        # then
+        self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputNames, job)
+
     @unittest.skip("Skipping broken conversion that needs to be fixed - conversion takes too long and times out")
     def test_usfm_ru_bundle_conversion(self):
         # given
@@ -376,6 +398,7 @@ class TestConversions(TestCase):
                                    self.getDestinationS3Key(commitSha, repo, user), chapterCount)
 
         # check required fields
+        print(saved_build_log)
         saved_build_json = json.loads(saved_build_log)
         self.assertTrue('commit_id' in saved_build_json)
         self.assertTrue('repo_owner' in saved_build_json)
