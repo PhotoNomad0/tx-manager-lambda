@@ -21,6 +21,7 @@ from bs4 import BeautifulSoup
 COMMIT_LENGTH = 40
 USE_WEB_HOOK_LAMBDA = True
 
+
 class TestConversions(TestCase):
     """
     To test locally, you must set two environment variables:
@@ -32,11 +33,11 @@ class TestConversions(TestCase):
     """
 
     def setUp(self):
-        branch = os.environ.get("TRAVIS_BRANCH", "develop") # default is testing develop branch (dev)
+        branch = os.environ.get("TRAVIS_BRANCH", "develop")  # default is testing develop branch (dev)
 
-        destination = "dev-" # default
+        destination = "dev-"  # default
         if branch == "master":
-            destination = "" # no prefix for production
+            destination = ""  # no prefix for production
 
         self.destination = destination
         self.api_url = 'https://{0}api.door43.org'.format(destination)
@@ -57,102 +58,115 @@ class TestConversions(TestCase):
 
     def test_ts_mat_conversion(self):
         # given
-        if not self.isTestingEnabled(): return # skip test if integration test not enabled
+        if not self.isTestingEnabled(): return  # skip test if integration test not enabled
         git_url = "https://git.door43.org/tx-manager-test-data/kpb_mat_text_udb.git"
-        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
-        expectedOutputName = "41-MAT"
+        base_url, repo, user = self.getPartsOfGitUrl(git_url)
+        expected_output_name = "41-MAT"
 
         # when
-        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
+        build_log_json, commit_id, commit_path, commit_sha, success, job = self.doConversionForRepo(base_url, user, repo)
 
         # then
-        self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
+        self.validateConversion(user, repo, success, build_log_json, commit_id, commit_sha, commit_path,
+                                expected_output_name, job)
 
     def test_ts_acts0_conversion(self):
         # given
-        if not self.isTestingEnabled(): return # skip test if integration test not enabled
+        if not self.isTestingEnabled(): return  # skip test if integration test not enabled
         git_url = "https://git.door43.org/tx-manager-test-data/awa_act_text_reg.git"
-        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
-        expectedOutputName = "45-ACT"
+        base_url, repo, user = self.getPartsOfGitUrl(git_url)
+        expected_output_name = "45-ACT"
 
         # when
-        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
+        build_log_json, commit_id, commit_path, commit_sha, success, job = self.doConversionForRepo(base_url, user,
+                                                                                                    repo)
 
         # then
-        self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
+        self.validateConversion(user, repo, success, build_log_json, commit_id, commit_sha, commit_path,
+                                expected_output_name, job)
 
     def test_ts_psa_conversion(self):
         # given
-        if not self.isTestingEnabled(): return # skip test if integration test not enabled
+        if not self.isTestingEnabled(): return  # skip test if integration test not enabled
         git_url = "https://git.door43.org/tx-manager-test-data/ceb_psa_text_ulb_L3.git"
-        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
-        expectedOutputName = "19-PSA"
+        base_url, repo, user = self.getPartsOfGitUrl(git_url)
+        expected_output_name = "19-PSA"
 
         # when
-        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
+        build_log_json, commit_id, commit_path, commit_sha, success, job = self.doConversionForRepo(base_url, user,
+                                                                                                    repo)
 
         # then
-        self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
+        self.validateConversion(user, repo, success, build_log_json, commit_id, commit_sha, commit_path,
+                                expected_output_name, job)
 
     def test_obs_conversion(self):
         # given
-        if not self.isTestingEnabled(): return # skip test if integration test not enabled
+        if not self.isTestingEnabled(): return  # skip test if integration test not enabled
         git_url = "https://git.door43.org/tx-manager-test-data/en-obs-rc-0.2.git"
-        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
-        expectedChapterCount = 50
+        base_url, repo, user = self.getPartsOfGitUrl(git_url)
+        expected_chapter_count = 50
 
         # when
-        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
+        build_log_json, commit_id, commit_path, commit_sha, success, job = self.doConversionForRepo(base_url, user,
+                                                                                                    repo)
 
         # then
-        self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, "", job, chapterCount=expectedChapterCount, fileExt="md")
+        self.validateConversion(user, repo, success, build_log_json, commit_id, commit_sha, commit_path, "", job,
+                                chapter_count=expected_chapter_count, file_ext="md")
 
     def test_obs_conversion_ts_upload(self):
         # given
-        if not self.isTestingEnabled(): return # skip test if integration test not enabled
+        if not self.isTestingEnabled(): return  # skip test if integration test not enabled
         git_url = "https://git.door43.org/tx-manager-test-data/hu_obs_text_obs.git"
-        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
-        expectedChapterCount = 49
+        base_url, repo, user = self.getPartsOfGitUrl(git_url)
+        expected_chapter_count = 49
 
         # when
-        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
+        build_log_json, commit_id, commit_path, commit_sha, success, job = self.doConversionForRepo(base_url, user,
+                                                                                                    repo)
 
         # then
-        self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, "", job, chapterCount=expectedChapterCount, fileExt="md")
+        self.validateConversion(user, repo, success, build_log_json, commit_id, commit_sha, commit_path, "", job,
+                                chapter_count=expected_chapter_count, file_ext="md")
 
     def test_usfm_en_jud_bundle_conversion(self):
         # given
-        if not self.isTestingEnabled(): return # skip test if integration test not enabled
+        if not self.isTestingEnabled(): return  # skip test if integration test not enabled
         git_url = "https://git.door43.org/tx-manager-test-data/en-ulb-jud.git"
-        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
-        expectedOutputNames = [ "66-JUD" ]
+        base_url, repo, user = self.getPartsOfGitUrl(git_url)
+        expected_output_names = [ "66-JUD" ]
 
         # when
-        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
+        build_log_json, commit_id, commit_path, commit_sha, success, job = self.doConversionForRepo(base_url, user,
+                                                                                                    repo)
 
         # then
-        self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputNames, job)
+        self.validateConversion(user, repo, success, build_log_json, commit_id, commit_sha, commit_path,
+                                expected_output_names, job)
 
     def test_usfm_en_bundle_conversion(self):
         # given
-        if not self.isTestingEnabled(): return # skip test if integration test not enabled
+        if not self.isTestingEnabled(): return  # skip test if integration test not enabled
         git_url = "https://git.door43.org/tx-manager-test-data/en-ulb.git"
-        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
-        expectedOutputNames = [ "01-GEN", "02-EXO", "03-LEV", "05-DEU" ]
+        base_url, repo, user = self.getPartsOfGitUrl(git_url)
+        expected_output_names = ["01-GEN", "02-EXO", "03-LEV", "05-DEU"]
 
         # when
-        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
+        build_log_json, commit_id, commit_path, commit_sha, success, job = self.doConversionForRepo(base_url, user,
+                                                                                                    repo)
 
         # then
-        self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputNames, job)
+        self.validateConversion(user, repo, success, build_log_json, commit_id, commit_sha, commit_path,
+                                expected_output_names, job)
 
     # @unittest.skip("Skipping broken conversion that needs to be fixed - conversion takes too long and times out")
     def test_usfm_ru_short_bundle_conversion(self):
         # given
-        if not self.isTestingEnabled(): return # skip test if integration test not enabled
+        if not self.isTestingEnabled(): return  # skip test if integration test not enabled
         git_url = "https://git.door43.org/tx-manager-test-data/bible_ru_short.git"  # shorter book list, but bigger books
-        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
-        expectedOutputNames = [
+        base_url, repo, user = self.getPartsOfGitUrl(git_url)
+        expected_output_names = [
             "18-JOB",
             "19-PSA",
             "20-PRO",
@@ -163,18 +177,20 @@ class TestConversions(TestCase):
         ]
 
         # when
-        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
+        build_log_json, commit_id, commit_path, commit_sha, success, job = self.doConversionForRepo(base_url, user,
+                                                                                                    repo)
 
         # then
-        self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputNames, job)
+        self.validateConversion(user, repo, success, build_log_json, commit_id, commit_sha, commit_path,
+                                expected_output_names, job)
 
     @unittest.skip("Skipping broken conversion that needs to be fixed - conversion takes too long and times out")
     def test_usfm_ru_bundle_conversion(self):
         # given
-        if not self.isTestingEnabled(): return # skip test if integration test not enabled
+        if not self.isTestingEnabled(): return  # skip test if integration test not enabled
         git_url = "https://git.door43.org/tx-manager-test-data/bible_ru.git"
-        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
-        expectedOutputNames = [
+        base_url, repo, user = self.getPartsOfGitUrl(git_url)
+        expected_output_names = [
             "01-GEN",
             "02-EXO",
             "03-LEV",
@@ -244,158 +260,178 @@ class TestConversions(TestCase):
         ]
 
         # when
-        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
+        build_log_json, commit_id, commit_path, commit_sha, success, job = self.doConversionForRepo(base_url, user,
+                                                                                                    repo)
 
         # then
-        self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputNames, job)
+        self.validateConversion(user, repo, success, build_log_json, commit_id, commit_sha, commit_path,
+                                expected_output_names, job)
 
     def test_ts_acts1_conversion(self):
         # given
-        if not self.isTestingEnabled(): return # skip test if integration test not enabled
+        if not self.isTestingEnabled(): return  # skip test if integration test not enabled
         git_url = "https://git.door43.org/tx-manager-test-data/kan-x-aruvu_act_text_udb.git"
-        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
-        expectedOutputName = "45-ACT"
+        base_url, repo, user = self.getPartsOfGitUrl(git_url)
+        expected_output_name = "45-ACT"
 
         # when
-        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
+        build_log_json, commit_id, commit_path, commit_sha, success, job = self.doConversionForRepo(base_url, user,
+                                                                                                    repo)
 
         # then
-        self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
+        self.validateConversion(user, repo, success, build_log_json, commit_id, commit_sha, commit_path,
+                                expected_output_name, job)
 
     def test_ts_acts2_conversion(self):
         # given
-        if not self.isTestingEnabled(): return # skip test if integration test not enabled
+        if not self.isTestingEnabled(): return  # skip test if integration test not enabled
         git_url = "https://git.door43.org/mohanraj/kn-x-bedar_act_text_udb.git"
-        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
-        expectedOutputName = "45-ACT"
+        base_url, repo, user = self.getPartsOfGitUrl(git_url)
+        expected_output_name = "45-ACT"
 
         # when
-        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
+        build_log_json, commit_id, commit_path, commit_sha, success, job = self.doConversionForRepo(base_url, user,
+                                                                                                    repo)
 
         # then
-        self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
+        self.validateConversion(user, repo, success, build_log_json, commit_id, commit_sha, commit_path,
+                                expected_output_name, job)
 
     @unittest.skip("Skip test for time reasons - leave for standalone testing")
     def test_ts_acts3_conversion(self):
         # given
-        if not self.isTestingEnabled(): return # skip test if integration test not enabled
+        if not self.isTestingEnabled(): return  # skip test if integration test not enabled
         git_url = "https://git.door43.org/nirmala/te-x-budugaja_act_text_reg.git"
-        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
-        expectedOutputName = "45-ACT"
+        base_url, repo, user = self.getPartsOfGitUrl(git_url)
+        expected_output_name = "45-ACT"
 
         # when
-        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
+        build_log_json, commit_id, commit_path, commit_sha, success, job = self.doConversionForRepo(base_url, user,
+                                                                                                    repo)
 
         # then
-        self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
+        self.validateConversion(user, repo, success, build_log_json, commit_id, commit_sha, commit_path,
+                                expected_output_name, job)
 
     @unittest.skip("Skip test for time reasons - leave for standalone testing")
     def test_ts_acts4_conversion(self):
         # given
-        if not self.isTestingEnabled(): return # skip test if integration test not enabled
+        if not self.isTestingEnabled(): return  # skip test if integration test not enabled
         git_url = "https://git.door43.org/jathapu/kxv_act_text_udb.git"
-        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
-        expectedOutputName = "45-ACT"
+        base_url, repo, user = self.getPartsOfGitUrl(git_url)
+        expected_output_name = "45-ACT"
 
         # when
-        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
+        build_log_json, commit_id, commit_path, commit_sha, success, job = self.doConversionForRepo(base_url, user,
+                                                                                                    repo)
 
         # then
-        self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
+        self.validateConversion(user, repo, success, build_log_json, commit_id, commit_sha, commit_path,
+                                expected_output_name, job)
 
     @unittest.skip("Skip test for time reasons - leave for standalone testing")
     def test_ts_acts5_conversion(self):
         # given
-        if not self.isTestingEnabled(): return # skip test if integration test not enabled
+        if not self.isTestingEnabled(): return  # skip test if integration test not enabled
         git_url = "https://git.door43.org/vinaykumar/kan-x-thigularu_act_text_udb.git"
-        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
-        expectedOutputName = "45-ACT"
+        base_url, repo, user = self.getPartsOfGitUrl(git_url)
+        expected_output_name = "45-ACT"
 
         # when
-        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
+        build_log_json, commit_id, commit_path, commit_sha, success, job = self.doConversionForRepo(base_url, user,
+                                                                                                    repo)
 
         # then
-        self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
+        self.validateConversion(user, repo, success, build_log_json, commit_id, commit_sha, commit_path,
+                                expected_output_name, job)
 
     @unittest.skip("Skip test for time reasons - leave for standalone testing")
     def test_ts_acts6_conversion(self):
         # given
-        if not self.isTestingEnabled(): return # skip test if integration test not enabled
+        if not self.isTestingEnabled(): return  # skip test if integration test not enabled
         git_url = "https://git.door43.org/Zipson/yeu_act_text_udb.git"
-        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
-        expectedOutputName = "45-ACT"
+        base_url, repo, user = self.getPartsOfGitUrl(git_url)
+        expected_output_name = "45-ACT"
 
         # when
-        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
+        build_log_json, commit_id, commit_path, commit_sha, success, job = self.doConversionForRepo(base_url, user,
+                                                                                                    repo)
 
         # then
-        self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
+        self.validateConversion(user, repo, success, build_log_json, commit_id, commit_sha, commit_path,
+                                expected_output_name, job)
 
     @unittest.skip("Skip test for time reasons - leave for standalone testing")
     def test_ts_acts7_conversion(self):
         # given
         if not self.isTestingEnabled(): return # skip test if integration test not enabled
         git_url = "https://git.door43.org/Zipson/kfc_act_text_udb.git"
-        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
-        expectedOutputName = "45-ACT"
+        base_url, repo, user = self.getPartsOfGitUrl(git_url)
+        expected_output_name = "45-ACT"
 
         # when
-        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
+        build_log_json, commit_id, commit_path, commit_sha, success, job = self.doConversionForRepo(base_url, user,
+                                                                                                    repo)
 
         # then
-        self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
+        self.validateConversion(user, repo, success, build_log_json, commit_id, commit_sha, commit_path,
+                                expected_output_name, job)
 
     @unittest.skip("Skip test for time reasons - leave for standalone testing")
     def test_ts_acts8_conversion(self):
         # given
-        if not self.isTestingEnabled(): return # skip test if integration test not enabled
+        if not self.isTestingEnabled(): return  # skip test if integration test not enabled
         git_url = "https://git.door43.org/E01877C8393A/uw-act_udb-aen.git"
-        baseUrl, repo, user = self.getPartsOfGitUrl(git_url)
-        expectedOutputName = "45-ACT"
+        base_url, repo, user = self.getPartsOfGitUrl(git_url)
+        expected_output_name = "45-ACT"
 
         # when
-        build_log_json, commitID, commitPath, commitSha, success, job = self.doConversionForRepo(baseUrl, user, repo)
+        build_log_json, commit_id, commit_path, commit_sha, success, job = self.doConversionForRepo(base_url, user,
+                                                                                                    repo)
 
         # then
-        self.validateConversion(user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputName, job)
+        self.validateConversion(user, repo, success, build_log_json, commit_id, commit_sha, commit_path,
+                                expected_output_name, job)
 
     ##
     ## handlers
     ##
 
     def isTestingEnabled(self):
-        test = os.environ.get('TEST_DEPLOYED',"")
-        doTest = (test == "test_deployed")
-        if not doTest:
+        test = os.environ.get('TEST_DEPLOYED', "")
+        do_test = (test == "test_deployed")
+        if not do_test:
             print("Skip testing since TEST_DEPLOYED is not set")
         else:
-            gogsUserToken = os.environ.get('GOGS_USER_TOKEN',"")
-            self.assertTrue(len(gogsUserToken) > 0, "GOGS_USER_TOKEN is missing in environment")
-        return doTest
+            gogs_user_token = os.environ.get('GOGS_USER_TOKEN', "")
+            self.assertTrue(len(gogs_user_token) > 0, "GOGS_USER_TOKEN is missing in environment")
+        return do_test
 
     def getPartsOfGitUrl(self, git_url):
         print("Testing conversion of: " + git_url)
         parts = git_url.split("/")
-        baseUrl = "/".join(parts[0:3])
+        base_url = "/".join(parts[0:3])
         user = parts[3]
         repo = parts[4].split(".git")[0]
-        return baseUrl, repo, user
+        return base_url, repo, user
 
-    def validateConversion(self, user, repo, success, build_log_json, commitID, commitSha, commitPath, expectedOutputNames, job, chapterCount=-1, fileExt=""):
+    def validateConversion(self, user, repo, success, build_log_json, commit_id, commit_sha, commit_path,
+                           expected_output_names, job, chapter_count=-1, file_ext=""):
         self.assertTrue(len(build_log_json) > 0)
         self.assertIsNotNone(job)
         self.temp_dir = tempfile.mkdtemp(prefix='testing_')
 
-        if not (type(expectedOutputNames) is list):
-            expectedOutputNames = [ expectedOutputNames ] # put string in list
+        if not (type(expected_output_names) is list):
+            expected_output_names = [expected_output_names]  # put string in list
 
         # check pre-convert files
-        self.downloadAndCheckZipFile(self.s3_handler, expectedOutputNames, "usfm", self.getPreconvertS3Key(commitSha),
-                                     "preconvert", success, chapterCount, fileExt)
+        self.download_and_check_zip_file(self.s3_handler, expected_output_names, "usfm",
+                                         self.getPreconvertS3Key(commit_sha), "preconvert", success, chapter_count,
+                                         file_ext)
 
         # check deployed files
-        saved_build_log = self.checkDestinationFiles(self.cdn_handler, expectedOutputNames, "html",
-                                   self.getDestinationS3Key(commitSha, repo, user), chapterCount)
+        saved_build_log = self.checkDestinationFiles(self.cdn_handler, expected_output_names, "html",
+                                                     self.getDestinationS3Key(commit_sha, repo, user), chapter_count)
 
         # check required fields
         print(saved_build_log)
@@ -410,9 +446,9 @@ class TestConversions(TestCase):
         self.assertTrue('message' in saved_build_json)
         self.assertTrue('status' in saved_build_json)
 
-        self.assertEqual(len(commitID), COMMIT_LENGTH)
-        self.assertIsNotNone(commitSha)
-        self.assertIsNotNone(commitPath)
+        self.assertEqual(len(commit_id), COMMIT_LENGTH)
+        self.assertIsNotNone(commit_sha)
+        self.assertIsNotNone(commit_path)
         if len(job.errors) > 0:
             print("WARNING: Found job errors: " + str(job.errors))
 
@@ -421,58 +457,59 @@ class TestConversions(TestCase):
 
         self.assertTrue(success)
 
-    def downloadAndCheckZipFile(self, handler, expectedOutputFiles, extension, key, type, success, chapterCount=-1, fileExt=""):
-        zipPath = os.path.join(self.temp_dir, type + ".zip")
-        handler.download_file(key, zipPath)
-        temp_sub_dir = tempfile.mkdtemp(dir=self.temp_dir, prefix=type + "_")
-        unzip(zipPath, temp_sub_dir)
+    def download_and_check_zip_file(self, handler, expected_output_files, extension, key, file_type, success,
+                                    chapter_count=-1, file_ext=""):
+        zip_path = os.path.join(self.temp_dir, file_type + ".zip")
+        handler.download_file(key, zip_path)
+        temp_sub_dir = tempfile.mkdtemp(dir=self.temp_dir, prefix=file_type + "_")
+        unzip(zip_path, temp_sub_dir)
 
-        checkList = []
-        if chapterCount <= 0:
-            for file in expectedOutputFiles:
-                checkList.append(file + "." + extension)
+        check_list = []
+        if chapter_count <= 0:
+            for file_name in expected_output_files:
+                check_list.append(file_name + "." + extension)
         else:
-            checkList = ['{0:0>2}.{1}'.format(i, fileExt) for i in range(1, chapterCount + 1)]
+            check_list = ['{0:0>2}.{1}'.format(i, file_ext) for i in range(1, chapter_count + 1)]
 
-        isFirst = True
-        for file in checkList:
-            outputFilePath = os.path.join(temp_sub_dir, file)
-            print("checking preconvert zip for: " + outputFilePath)
-            self.assertTrue(os.path.exists(outputFilePath), "missing file: " + file)
-            if isFirst:
-                self.printFile(file, outputFilePath)
-                isFirst = False
+        is_first = True
+        for file_name in check_list:
+            output_file_path = os.path.join(temp_sub_dir, file_name)
+            print("checking preconvert zip for: " + output_file_path)
+            self.assertTrue(os.path.exists(output_file_path), "missing file: " + file_name)
+            if is_first:
+                self.print_file(file_name, output_file_path)
+                is_first = False
 
         manifest_json = os.path.join(temp_sub_dir, "manifest.json")
         json_exists = os.path.exists(manifest_json)
-        if not success and json_exists: # print out for troubleshooting
-            self.printFile("manifest.json", manifest_json)
+        if not success and json_exists:  # print out for troubleshooting
+            self.print_file("manifest.json", manifest_json)
         manifest_yaml = os.path.join(temp_sub_dir, "manifest.yaml")
         yaml_exists = os.path.exists(manifest_yaml)
         if not success and yaml_exists:  # print out for troubleshooting
-            self.printFile("manifest.yaml", manifest_yaml)
+            self.print_file("manifest.yaml", manifest_yaml)
 
         self.assertTrue(json_exists or yaml_exists, "missing manifest file")
 
-    def printFile(self, fileName, filePath):
-        text = file_utils.read_file(filePath)
-        print("Output file (" + fileName + "): " + text)
+    def print_file(self, file_name, file_path):
+        text = file_utils.read_file(file_path)
+        print("Output file (" + file_name + "): " + text)
 
-    def checkDestinationFiles(self, handler, expectedOutputFiles, extension, key, chapterCount=-1):
-        checkList = []
-        if chapterCount <= 0:
-            for file in expectedOutputFiles:
-                checkList.append(file + "." + extension)
+    def checkDestinationFiles(self, handler, expected_output_files, extension, key, chapter_count=-1):
+        check_list = []
+        if chapter_count <= 0:
+            for file_name in expected_output_files:
+                check_list.append(file_name + "." + extension)
         else:
-            checkList = ['{0:0>2}.html'.format(i) for i in range(1, chapterCount + 1)]
+            check_list = ['{0:0>2}.html'.format(i) for i in range(1, chapter_count + 1)]
             # checkList.append("index.html")
 
-        retry_count = 0;
-        for file in checkList:
-            path = os.path.join(key, file)
+        retry_count = 0
+        for file_name in check_list:
+            path = os.path.join(key, file_name)
             print("checking destination folder for: " + path)
             output = handler.get_file_contents(path)
-            while output==None: # try again in a moment since upload files may not be finished
+            while output is None:  # try again in a moment since upload files may not be finished
                 time.sleep(5)
                 retry_count += 1
                 if retry_count > 7:
@@ -484,72 +521,73 @@ class TestConversions(TestCase):
 
             self.assertIsNotNone(output, "missing file: " + path)
 
-        build_log = handler.get_file_contents(os.path.join(key, "build_log.json") )
-        manifest = handler.get_file_contents(os.path.join(key, "manifest.json") )
-        if manifest == None:
-            manifest = handler.get_file_contents(os.path.join(key, "manifest.yaml") )
+        build_log = handler.get_file_contents(os.path.join(key, "build_log.json"))
+        manifest = handler.get_file_contents(os.path.join(key, "manifest.json"))
+        if manifest is None:
+            manifest = handler.get_file_contents(os.path.join(key, "manifest.yaml"))
         self.assertTrue(len(manifest) > 0, "missing manifest file ")
         self.assertTrue(len(build_log) > 0, "missing build_log file ")
         return build_log
 
-    def doConversionForRepo(self, baseUrl, user, repo):
+    def doConversionForRepo(self, base_url, user, repo):
         build_log_json = None
         job = None
         success = False
         self.cdn_handler = S3Handler(self.cdn_bucket)
-        commitID, commitPath, commitSha = self.fetchCommitDataForRepo(baseUrl, repo, user)  # TODO: change this to use gogs API when finished
-        commitLen = len(commitID)
-        if commitLen == COMMIT_LENGTH:
-            self.deletePreconvertZipFile(commitSha)
-            self.deleteTxOutputZipFile(commitID)
-            self.emptyDestinationFolder(commitSha, repo, user)
-            build_log_json, success, job = self.doConversionJob(baseUrl, commitID, commitPath, commitSha, repo, user)
+        commit_id, commit_path, commit_sha = self.fetchCommitDataForRepo(base_url, repo, user)  # TODO: change this to use gogs API when finished
+        commit_len = len(commit_id)
+        if commit_len == COMMIT_LENGTH:
+            self.deletePreconvertZipFile(commit_sha)
+            self.deleteTxOutputZipFile(commit_id)
+            self.emptyDestinationFolder(commit_sha, repo, user)
+            build_log_json, success, job = self.doConversionJob(base_url, commit_id, commit_path, commit_sha, repo,
+                                                                user)
 
-        return build_log_json, commitID, commitPath, commitSha, success, job
+        return build_log_json, commit_id, commit_path, commit_sha, success, job
 
-    def emptyDestinationFolder(self, commitSha, repo, user):
-        destination_key = self.getDestinationS3Key(commitSha, repo, user)
+    def emptyDestinationFolder(self, commit_sha, repo, user):
+        destination_key = self.getDestinationS3Key(commit_sha, repo, user)
         for obj in self.cdn_handler.get_objects(prefix=destination_key):
             print("deleting destination file: " + obj.key)
             self.cdn_handler.delete_file(obj.key)
 
-    def deletePreconvertZipFile(self, commitSha):
+    def deletePreconvertZipFile(self, commit_sha):
         self.s3_handler = S3Handler(self.pre_convert_bucket)
-        preconvert_key = self.getPreconvertS3Key(commitSha)
+        preconvert_key = self.getPreconvertS3Key(commit_sha)
         if self.s3_handler.key_exists(preconvert_key):
             print("deleting preconvert file: " + preconvert_key)
             self.s3_handler.delete_file(preconvert_key, catch_exception=True)
 
-    def deleteTxOutputZipFile(self, commitID):
-        txOutput_key = self.getTxOutputS3Key(commitID)
-        if self.cdn_handler.key_exists(txOutput_key):
-            print("deleting tx output file: " + txOutput_key)
-            self.cdn_handler.delete_file(txOutput_key, catch_exception=True)
+    def deleteTxOutputZipFile(self, commit_id):
+        tx_output_key = self.getTxOutputS3Key(commit_id)
+        if self.cdn_handler.key_exists(tx_output_key):
+            print("deleting tx output file: " + tx_output_key)
+            self.cdn_handler.delete_file(tx_output_key, catch_exception=True)
 
-    def getTxOutputS3Key(self, commitID):
-        output_key = 'tx/job/{0}.zip'.format(commitID)
+    def getTxOutputS3Key(self, commit_id):
+        output_key = 'tx/job/{0}.zip'.format(commit_id)
         return output_key
 
-    def getDestinationS3Key(self, commitSha, repo, user):
-        destination_key = 'u/{0}/{1}/{2}'.format(user, repo, commitSha)
+    def getDestinationS3Key(self, commit_sha, repo, user):
+        destination_key = 'u/{0}/{1}/{2}'.format(user, repo, commit_sha)
         return destination_key
 
-    def getPreconvertS3Key(self, commitSha):
-        preconvert_key = "preconvert/{0}.zip".format(commitSha)
+    def getPreconvertS3Key(self, commit_sha):
+        preconvert_key = "preconvert/{0}.zip".format(commit_sha)
         return preconvert_key
 
-    def doConversionJob(self, baseUrl, commitID, commitPath, commitSha, repo, user):
-        gogsUserToken = os.environ.get('GOGS_USER_TOKEN',"")
-        if len(gogsUserToken) == 0:
+    def doConversionJob(self, base_url, commit_id, commit_path, commit_sha, repo, user):
+        gogs_user_token = os.environ.get('GOGS_USER_TOKEN', "")
+        if len(gogs_user_token) == 0:
             print("GOGS_USER_TOKEN is missing in environment")
 
-        webhookData = {
-            "after": commitID,
+        webhook_data = {
+            "after": commit_id,
             "commits": [
                 {
                     "id": "b9278437b27024e07d02490400138d4fd7d1677c",
                     "message": "Fri Dec 16 2016 11:09:07 GMT+0530 (India Standard Time)\n",
-                    "url": baseUrl + commitPath,
+                    "url": base_url + commit_path,
                 }],
             "compare_url": "",
             "repository": {
@@ -573,23 +611,23 @@ class TestConversions(TestCase):
             'pre_convert_bucket': self.pre_convert_bucket,
             'cdn_bucket': self.cdn_bucket,
             'gogs_url': self.gogs_url,
-            'gogs_user_token': gogsUserToken,
-            'commit_data': webhookData
+            'gogs_user_token': gogs_user_token,
+            'commit_data': webhook_data
         }
 
         if USE_WEB_HOOK_LAMBDA:
             headers = {"content-type": "application/json"}
             tx_client_webhook_url = "{0}/client/webhook".format(self.api_url)
             print('Making request to client/webhook URL {0} with payload:'.format(tx_client_webhook_url), end=' ')
-            print(webhookData)
-            response = requests.post(tx_client_webhook_url, json=webhookData, headers=headers)
+            print(webhook_data)
+            response = requests.post(tx_client_webhook_url, json=webhook_data, headers=headers)
             print('webhook finished with code:' + str(response.status_code))
             print('webhook finished with text:' + str(response.text))
             build_log_json = json.loads(response.text)
             if response.status_code != 200:
                 return build_log_json, False, (build_log_json['job_id'])
 
-        else: # do preconvert locally
+        else:  # do preconvert locally
             try:
                 build_log_json = ClientWebhook(**env_vars).process_webhook()
             except Exception as e:
@@ -597,25 +635,25 @@ class TestConversions(TestCase):
                 print(message)
                 return None, False, None
 
-        if not "build_logs" in build_log_json: # if not multiple parts
+        if "build_logs" not in build_log_json:  # if not multiple parts
             job_id = build_log_json['job_id']
-            if job_id == None:
+            if job_id is None:
                 print("Job ID missing in build_log")
                 return None, False, None
             success, job = self.pollUntilJobFinished(job_id)
 
-        else: # multiple parts
-            for build_log in build_log_json['build_logs']: # check for completion of each part
+        else:  # multiple parts
+            for build_log in build_log_json['build_logs']:  # check for completion of each part
                 job_id = build_log['job_id']
-                if job_id == None:
+                if job_id is None:
                     print("Job ID missing in build_logs")
                     return None, False, None
                 success, job = self.pollUntilJobFinished(job_id)
                 if not success:
                     break
 
-        build_log_json = self.getJsonFile(commitSha, 'build_log.json', repo, user)
-        if build_log_json != None:
+        build_log_json = self.getJsonFile(commit_sha, 'build_log.json', repo, user)
+        if build_log_json is not None:
             print("Final results:\n" + str(build_log_json))
         return build_log_json, success, job
 
@@ -633,69 +671,69 @@ class TestConversions(TestCase):
         }
         tx_manager = TxManager(**env_vars)
 
-        pollingTimeout = 5 * 60 # poll for up to 5 minutes for job to complete or error
-        sleepInterval = 5 # how often to check for completion
-        startMaxWaitCount = 30 / sleepInterval # maximum count to wait for conversion to start (sec/interval)
-        for i in range(0, pollingTimeout / sleepInterval):
+        polling_timeout = 5 * 60  # poll for up to 5 minutes for job to complete or error
+        sleep_interval = 5  # how often to check for completion
+        start_max_wait_count = 30 / sleep_interval  # maximum count to wait for conversion to start (sec/interval)
+        for i in range(0, polling_timeout / sleep_interval):
             job = tx_manager.get_job(job_id)
             self.assertIsNotNone(job)
             print("job status at " + str(i) + ":\n" + str(job.log))
 
-            if job.ended_at != None:
+            if job.ended_at is not None:
                 success = True
                 break
 
-            if (i > startMaxWaitCount) and (job.started_at == None):
+            if (i > start_max_wait_count) and (job.started_at is None):
                 success = False
                 print("Conversion Failed to start")
                 break
 
-            time.sleep(sleepInterval) # delay before polling again
+            time.sleep(sleep_interval)  # delay before polling again
 
         return success, job
 
-    def getJsonFile(self, commitSha, file, repo, user):
-        key = 'u/{0}/{1}/{2}/{3}'.format(user, repo, commitSha, file)
+    def getJsonFile(self, commit_sha, file_name, repo, user):
+        key = 'u/{0}/{1}/{2}/{3}'.format(user, repo, commit_sha, file_name)
         text = self.cdn_handler.get_json(key)
         return text
 
-    def fetchCommitDataForRepo(self, baseUrl, repo, user):
-        commitID = None
-        commitSha = None
-        commitPath = None
-        data = self.readContentsOfRepo(baseUrl, user, repo)
+    def fetchCommitDataForRepo(self, base_url, repo, user):
+        commit_id = None
+        commit_sha = None
+        commit_path = None
+        data = self.readContentsOfRepo(base_url, user, repo)
         if len(data) > 10:
-            commitID, commitSha, commitPath = self.findLastedCommitFromPage(data)
-        return commitID, commitPath, commitSha
+            commit_id, commit_sha, commit_path = self.findLastedCommitFromPage(data)
+        return commit_id, commit_path, commit_sha
 
     def findLastedCommitFromPage(self, text):
         soup = BeautifulSoup(text, 'html.parser')
         table = soup.find('table')
-        commitID = None
-        commitSha = None
-        commitPath = None
-        if table != None:
+        commit_id = None
+        commit_sha = None
+        commit_path = None
+        if table is not None:
             rows = table.findAll('tr')
-            if (rows != None) and (len(rows) > 0):
+            if (rows is not None) and (len(rows) > 0):
                 for row in rows:
-                    commitCell = row.find('td', {"class": "sha"} )
-                    if commitCell != None:
-                        commitLink = commitCell.find('a')
-                        if commitLink != None:
-                            commitPath = commitLink['href']
-                            commitSha = self.getContents(commitLink)
-                            parts = commitPath.split('/')
-                            commitID = parts[4]
+                    commit_cell = row.find('td', {"class": "sha"})
+                    if commit_cell is not None:
+                        commit_link = commit_cell.find('a')
+                        if commit_link is not None:
+                            commit_path = commit_link['href']
+                            commit_sha = self.getContents(commit_link)
+                            parts = commit_path.split('/')
+                            commit_id = parts[4]
                             break
 
-        return commitID, commitSha, commitPath
+        return commit_id, commit_sha, commit_path
 
     def makeFolder(self, directory):
         if not os.path.exists(directory):
             os.makedirs(directory)
 
-    def readContentsOfRepo(self, baseUrl, user, repo):
-        self.url = "{0}/{1}/{2}/commits/master".format(baseUrl, user, repo)
+    def readContentsOfRepo(self, base_url, user, repo):
+        self.url = "{0}/{1}/{2}/commits/master".format(base_url, user, repo)
         ttr_response = requests.get(self.url)
         if ttr_response.status_code == 200:
             return ttr_response.text
@@ -704,7 +742,7 @@ class TestConversions(TestCase):
         return None
 
     def getContents(self, item):
-        if item != None:
+        if item is not None:
             contents = item.stripped_strings
             for string in contents:
                 text = string
