@@ -643,19 +643,60 @@ class TestConversions(TestCase):
             success, job = self.poll_until_job_finished(job_id)
 
         else:  # multiple parts
-            for build_log in build_log_json['build_logs']:  # check for completion of each part
-                job_id = build_log['job_id']
-                if job_id is None:
-                    print("Job ID missing in build_logs")
-                    return None, False, None
-                success, job = self.poll_until_job_finished(job_id)
-                if not success:
-                    break
+            success, job = self.poll_until_all_jobs_finished(build_log_json['build_logs'])
 
         build_log_json = self.get_json_file(commit_sha, 'build_log.json', repo, user)
         if build_log_json is not None:
             print("Final results:\n" + str(build_log_json))
         return build_log_json, success, job
+
+    def poll_until_all_jobs_finished(self, build_logs):
+        job = None
+        finished = []
+        job_count = len(build_logs)
+
+        env_vars = {
+            'api_url': self.api_url,
+            'gogs_url': self.gogs_url,
+            'cdn_url': self.cdn_url,
+            'job_table_name':  self.job_table_name,
+            'module_table_name': self.module_table_name,
+            'cdn_bucket': self.cdn_bucket
+        }
+        tx_manager = TxManager(**env_vars)
+
+        polling_timeout = 5 * 60  # poll for up to 5 minutes for job to complete or error
+        sleep_interval = 5  # how often to check for completion
+        start_max_wait_count = 30 / sleep_interval  # maximum count to wait for conversion to start (sec/interval)
+        max_count = polling_timeout / sleep_interval
+        i = 0
+        done = False
+        while (i < max_count) and not done:
+            time.sleep(sleep_interval)  # delay before polling again
+            i += 1
+            for build_log in build_logs:  # check for completion of each part
+                job_id = build_log['job_id']
+                if job_id in finished:
+                    continue  # skip if job already finished
+
+                job = tx_manager.get_job(job_id)
+                self.assertIsNotNone(job)
+                print("job status at " + str(i) + ":\n" + str(job.log))
+
+                if job.ended_at is not None:
+                    finished.append(job_id)
+                    i = 0  # reset timeour
+                    if len(finished) >= job_count:
+                        done = True  # finished
+                        break
+
+        if len(finished) < job_count:
+            for build_log in build_logs:  # check for completion of each part
+                job_id = build_log['job_id']
+                if job_id not in finished:
+                    print("Conversion Failed to start on job: " + job_id)
+
+        return done, job
 
     def poll_until_job_finished(self, job_id):
         success = False
