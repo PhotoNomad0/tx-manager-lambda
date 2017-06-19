@@ -184,6 +184,49 @@ class TestConversions(TestCase):
         self.validate_conversion(user, repo, success, build_log_json, commit_id, commit_sha, commit_path,
                                  expected_output_names, job)
 
+    def test_usfm_ru_nt_bundle_conversion(self):
+        # given
+        if not self.is_testing_enabled(): return  # skip test if integration test not enabled
+        git_url = "https://git.door43.org/tx-manager-test-data/nt_ru.git"
+        base_url, repo, user = self.get_parts_of_git_url(git_url)
+        expected_output_names = [
+            "41-MAT",
+            "42-MRK",
+            "43-LUK",
+            "44-JHN",
+            "45-ACT",
+            "46-ROM",
+            "47-1CO",
+            "48-2CO",
+            "49-GAL",
+            "50-EPH",
+            "51-PHP",
+            "52-COL",
+            "53-1TH",
+            "54-2TH",
+            "55-1TI",
+            "56-2TI",
+            "57-TIT",
+            "58-PHM",
+            "59-HEB",
+            "60-JAS",
+            "61-1PE",
+            "62-2PE",
+            "63-1JN",
+            "64-2JN",
+            "65-3JN",
+            "66-JUD",
+            "67-REV"
+        ]
+
+        # when
+        build_log_json, commit_id, commit_path, commit_sha, success, job = self.do_conversion_for_repo(base_url, user,
+                                                                                                       repo)
+
+        # then
+        self.validate_conversion(user, repo, success, build_log_json, commit_id, commit_sha, commit_path,
+                                 expected_output_names, job)
+
     @unittest.skip("Skipping broken conversion that needs to be fixed - webhook takes too long and times out")
     def test_usfm_ru_bundle_conversion(self):
         # given
@@ -649,6 +692,7 @@ class TestConversions(TestCase):
             'commit_data': webhook_data
         }
 
+        start = time.time()
         if USE_WEB_HOOK_LAMBDA:
             headers = {"content-type": "application/json"}
             tx_client_webhook_url = "{0}/client/webhook".format(self.api_url)
@@ -669,6 +713,9 @@ class TestConversions(TestCase):
                 print(message)
                 return None, False, None
 
+        elapsed_seconds = int(time.time() - start)
+        print("webhook completed in " + str(elapsed_seconds))
+        
         if "build_logs" not in build_log_json:  # if not multiple parts
             job_id = build_log_json['job_id']
             if job_id is None:
