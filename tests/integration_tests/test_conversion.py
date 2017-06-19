@@ -160,7 +160,7 @@ class TestConversions(TestCase):
         self.validate_conversion(user, repo, success, build_log_json, commit_id, commit_sha, commit_path,
                                  expected_output_names, job)
 
-    # @unittest.skip("Skipping broken conversion that needs to be fixed - conversion takes too long and times out")
+    @unittest.skip("Skip test for time reasons - leave for standalone testing")
     def test_usfm_ru_short_bundle_conversion(self):
         # given
         if not self.is_testing_enabled(): return  # skip test if integration test not enabled
@@ -184,7 +184,7 @@ class TestConversions(TestCase):
         self.validate_conversion(user, repo, success, build_log_json, commit_id, commit_sha, commit_path,
                                  expected_output_names, job)
 
-    @unittest.skip("Skipping broken conversion that needs to be fixed - conversion takes too long and times out")
+    @unittest.skip("Skipping broken conversion that needs to be fixed - webhook takes too long and times out")
     def test_usfm_ru_bundle_conversion(self):
         # given
         if not self.is_testing_enabled(): return  # skip test if integration test not enabled
@@ -429,7 +429,7 @@ class TestConversions(TestCase):
                                          self.get_preconvert_s3_key(commit_sha), "preconvert", success, chapter_count,
                                          file_ext)
 
-        # check deployed files
+        # check converted files
         saved_build_log = self.check_destination_files(self.cdn_handler, expected_output_names, "html",
                                                        self.get_destination_s3_key(commit_sha, repo, user), chapter_count)
 
@@ -494,6 +494,40 @@ class TestConversions(TestCase):
     def print_file(self, file_name, file_path):
         text = file_utils.read_file(file_path)
         print("Output file (" + file_name + "): " + text)
+
+    def check_deployed_files(self, handler, expected_output_files, extension, key, chapter_count=-1):
+        check_list = []
+        if chapter_count <= 0:
+            for file_name in expected_output_files:
+                check_list.append(file_name + "." + extension)
+        else:
+            check_list = ['{0:0>2}.html'.format(i) for i in range(1, chapter_count + 1)]
+            # checkList.append("index.html")
+
+        retry_count = 0
+        for file_name in check_list:
+            path = os.path.join(key, file_name)
+            print("checking destination folder for: " + path)
+            output = handler.get_file_contents(path)
+            while output is None:  # try again in a moment since upload files may not be finished
+                time.sleep(5)
+                retry_count += 1
+                if retry_count > 7:
+                    print("timeout getting file")
+                    break
+
+                print("retry fetch of: " + path)
+                output = handler.get_file_contents(path)
+
+            self.assertIsNotNone(output, "missing file: " + path)
+
+        build_log = handler.get_file_contents(os.path.join(key, "build_log.json"))
+        manifest = handler.get_file_contents(os.path.join(key, "manifest.json"))
+        if manifest is None:
+            manifest = handler.get_file_contents(os.path.join(key, "manifest.yaml"))
+        self.assertTrue(len(manifest) > 0, "missing manifest file ")
+        self.assertTrue(len(build_log) > 0, "missing build_log file ")
+        return build_log
 
     def check_destination_files(self, handler, expected_output_files, extension, key, chapter_count=-1):
         check_list = []
