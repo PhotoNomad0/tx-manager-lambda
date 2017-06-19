@@ -184,6 +184,7 @@ class TestConversions(TestCase):
         self.validate_conversion(user, repo, success, build_log_json, commit_id, commit_sha, commit_path,
                                  expected_output_names, job)
 
+    @unittest.skip("Skip test for time reasons - leave for standalone testing")
     def test_usfm_ru_nt_bundle_conversion(self):
         # given
         if not self.is_testing_enabled(): return  # skip test if integration test not enabled
@@ -217,6 +218,62 @@ class TestConversions(TestCase):
             "65-3JN",
             "66-JUD",
             "67-REV"
+        ]
+
+        # when
+        build_log_json, commit_id, commit_path, commit_sha, success, job = self.do_conversion_for_repo(base_url, user,
+                                                                                                       repo)
+
+        # then
+        self.validate_conversion(user, repo, success, build_log_json, commit_id, commit_sha, commit_path,
+                                 expected_output_names, job)
+
+    @unittest.skip("Skip test for time reasons - leave for standalone testing")
+    def test_usfm_ru_ot_bundle_conversion(self):
+        # given
+        if not self.is_testing_enabled(): return  # skip test if integration test not enabled
+        git_url = "https://git.door43.org/tx-manager-test-data/ot_ru.git"
+        base_url, repo, user = self.get_parts_of_git_url(git_url)
+        expected_output_names = [
+            "01-GEN",
+            "02-EXO",
+            "03-LEV",
+            "04-NUM",
+            "05-DEU",
+            "06-JOS",
+            "07-JDG",
+            "08-RUT",
+            "09-1SA",
+            "10-2SA",
+            "11-1KI",
+            "12-2KI",
+            "13-1CH",
+            "14-2CH",
+            "15-EZR",
+            "16-NEH",
+            "17-EST",
+            "18-JOB",
+            "19-PSA",
+            "20-PRO",
+            "21-ECC",
+            "22-SNG",
+            "23-ISA",
+            "24-JER",
+            "25-LAM",
+            "26-EZK",
+            "27-DAN",
+            "28-HOS",
+            "29-JOL",
+            "30-AMO",
+            "31-OBA",
+            "32-JON",
+            "33-MIC",
+            "34-NAM",
+            "35-HAB",
+            "36-ZEP",
+            "37-HAG",
+            "38-ZEC",
+            "39-MAL",
         ]
 
         # when
@@ -715,7 +772,7 @@ class TestConversions(TestCase):
 
         elapsed_seconds = int(time.time() - start)
         print("webhook completed in " + str(elapsed_seconds))
-        
+
         if "build_logs" not in build_log_json:  # if not multiple parts
             job_id = build_log_json['job_id']
             if job_id is None:
