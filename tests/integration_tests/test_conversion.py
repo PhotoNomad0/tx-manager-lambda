@@ -47,6 +47,7 @@ class TestConversions(TestCase):
         self.job_table_name = '{0}tx-job'.format(destination)
         self.module_table_name = '{0}tx-module'.format(destination)
         self.cdn_url = 'https://{0}cdn.door43.org'.format(destination)
+        self.door43_bucket = '{0}door43.org'.format(destination)
 
         print("Testing on '" + branch + "' branch, e.g.: " + self.api_url)
 
@@ -525,7 +526,7 @@ class TestConversions(TestCase):
             expected_output_names = [expected_output_names]  # put string in list
 
         # check pre-convert files
-        self.download_and_check_zip_file(self.s3_handler, expected_output_names, "usfm",
+        self.download_and_check_zip_file(self.preconvert_handler, expected_output_names, "usfm",
                                          self.get_preconvert_s3_key(commit_sha), "preconvert", success, chapter_count,
                                          file_ext)
 
@@ -555,6 +556,11 @@ class TestConversions(TestCase):
         if len(build_log_json['errors']) > 0:
             print("WARNING: Found build_log errors: " + str(build_log_json['errors']))
 
+        door43_handler = S3Handler(self.door43_bucket)
+        deployed_build_log = self.check_deployed_files(door43_handler, expected_output_names, "html",
+                                                       self.get_destination_s3_key(commit_sha, repo, user), chapter_count)
+
+        self.assertEqual(saved_build_log, deployed_build_log, "converted and deployed build logs should be equal")
         self.assertTrue(success)
 
     def download_and_check_zip_file(self, handler, expected_output_files, extension, key, file_type, success,
@@ -604,22 +610,29 @@ class TestConversions(TestCase):
             check_list = ['{0:0>2}.html'.format(i) for i in range(1, chapter_count + 1)]
             # checkList.append("index.html")
 
-        retry_count = 0
-        for file_name in check_list:
-            path = os.path.join(key, file_name)
-            print("checking destination folder for: " + path)
-            output = handler.get_file_contents(path)
-            while output is None:  # try again in a moment since upload files may not be finished
-                time.sleep(5)
-                retry_count += 1
-                if retry_count > 7:
-                    print("timeout getting file")
-                    break
+        check_list.append("index.html")
 
-                print("retry fetch of: " + path)
+        retries = 0
+        max_retries = 10
+        found = []
+        while (retries < max_retries) and (len(found) < len(check_list)):
+            time.sleep(5)
+            for file_name in check_list:
+                if file_name in found:
+                    continue
+
+                path = os.path.join(key, file_name)
+                print("checking destination folder for: " + path)
                 output = handler.get_file_contents(path)
+                if output:
+                    found.append(file_name)
+                    retries = 0  # reset
+                    print("found: " + path)
 
-            self.assertIsNotNone(output, "missing file: " + path)
+        if len(found) < len(check_list):
+            for file_name in check_list:
+                if file_name not in found:
+                    self.assertTrue(False, "missing file: " + file_name)
 
         build_log = handler.get_file_contents(os.path.join(key, "build_log.json"))
         manifest = handler.get_file_contents(os.path.join(key, "manifest.json"))
@@ -638,15 +651,16 @@ class TestConversions(TestCase):
             check_list = ['{0:0>2}.html'.format(i) for i in range(1, chapter_count + 1)]
             # checkList.append("index.html")
 
-        retry_count = 0
+        retries = 0
+        max_retries = 7
         for file_name in check_list:
             path = os.path.join(key, file_name)
             print("checking destination folder for: " + path)
             output = handler.get_file_contents(path)
             while output is None:  # try again in a moment since upload files may not be finished
                 time.sleep(5)
-                retry_count += 1
-                if retry_count > 7:
+                retries += 1
+                if retries > max_retries:
                     print("timeout getting file")
                     break
 
@@ -686,11 +700,11 @@ class TestConversions(TestCase):
             self.cdn_handler.delete_file(obj.key)
 
     def delete_preconvert_zip_file(self, commit_sha):
-        self.s3_handler = S3Handler(self.pre_convert_bucket)
+        self.preconvert_handler = S3Handler(self.pre_convert_bucket)
         preconvert_key = self.get_preconvert_s3_key(commit_sha)
-        if self.s3_handler.key_exists(preconvert_key):
+        if self.preconvert_handler.key_exists(preconvert_key):
             print("deleting preconvert file: " + preconvert_key)
-            self.s3_handler.delete_file(preconvert_key, catch_exception=True)
+            self.preconvert_handler.delete_file(preconvert_key, catch_exception=True)
 
     def delete_tx_output_zip_file(self, commit_id):
         tx_output_key = self.get_tx_output_s3_key(commit_id)
