@@ -73,7 +73,6 @@ class TestConversions(TestCase):
         self.validate_conversion(user, repo, success, build_log_json, commit_id, commit_sha, commit_path,
                                  expected_output_name, job)
 
-    @unittest.skip("#### TODO: Skipping broken conversion that needs to be fixed - cannot convert resource type of reg")
     def test_ts_acts0_conversion(self):
         # given
         if not self.is_testing_enabled(): return  # skip test if integration test not enabled
